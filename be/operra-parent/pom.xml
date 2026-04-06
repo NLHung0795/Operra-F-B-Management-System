@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Kế thừa từ Spring Boot Parent -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.5</version> <!-- Bạn có thể điều chỉnh version Spring Boot ở đây -->
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <!-- Thông tin của Operra Parent -->
+    <groupId>com.operra</groupId>
+    <artifactId>operra-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging> <!-- QUAN TRỌNG: Khai báo packaging là pom -->
+
+    <name>operra-parent</name>
+    <description>Parent POM for Operra Microservices</description>
+
+    <!-- Quản lý version các thư viện dùng chung -->
+    <properties>
+        <java.version>22</java.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <projectlombok-lombok.version>1.18.44</projectlombok-lombok.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+    </properties>
+
+    <!-- Danh sách các module con (Các service sẽ được add vào đây sau khi tạo) -->
+    <modules>
+        <module>../operra-api-gateway</module>
+        <module>../operra-common</module>
+        <module>../operra-identity-service</module>
+    </modules>
+
+    <!-- Dependency Management: Chỉ định version cho các service con, các service con khai báo thư viện sẽ tự động ăn version ở đây -->
+    <dependencyManagement>  
+        <dependencies>
+            <!-- Spring Cloud Dependencies -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Các Dependencies mặc định mà TẤT CẢ các service đều cần (ví dụ: Lombok, Test) -->
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+    </dependencies>
+    <build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- Annotation Processing cho Lombok & MapStruct -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.11.0</version>
+
+				<configuration>
+					<source>${java.version}</source> <!-- hoặc 22 nếu bạn dùng Java 22 -->
+					<target>${java.version}</target>
+					<annotationProcessorPaths>
+						<!-- Lombok -->
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${projectlombok-lombok.version}</version>
+						</path>
+						<!-- MapStruct -->
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${mapstruct.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>

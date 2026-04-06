@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Kế thừa từ operra-parent -->
+	<parent>
+		<groupId>com.operra</groupId>
+		<artifactId>operra-parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../operra-parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>operra-common</artifactId>
+	<packaging>jar</packaging> <!-- Build ra file .jar thông thường -->
+
+	<dependencies>
+		<!-- Vì common chứa DTO và Exception chung, ta cần Spring Web và Validation -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
+
+		<!-- Lưu ý: Không cần khai báo Lombok vì nó đã tự động được kéo về từ parent -->
+	</dependencies>
+
+	<!--
+      LƯU Ý CỰC KỲ QUAN TRỌNG:
+      Tuyệt đối KHÔNG cấu hình <plugin> spring-boot-maven-plugin ở đây.
+      Vì nếu có, Spring Boot sẽ đóng gói nó thành ứng dụng chạy được (Fat JAR),
+      khiến các service khác không thể import nó như một thư viện (Library JAR) được.
+    -->
+</project>
