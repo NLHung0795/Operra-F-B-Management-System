@@ -1,0 +1,53 @@
+# ====================
+# Environment & Secrets
+# ====================
+.env
+.env.*
+!.env.example
+
+# ====================
+# IDE - IntelliJ IDEA
+# ====================
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ====================
+# IDE - VS Code
+# ====================
+.vscode/
+
+# ====================
+# IDE - Eclipse / STS
+# ====================
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.sts4-cache
+.apt_generated
+
+# ====================
+# IDE - NetBeans
+# ====================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ====================
+# OS Generated Files
+# ====================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ====================
+# Logs
+# ====================
+*.log
+logs/

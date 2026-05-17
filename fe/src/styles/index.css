@@ -1,0 +1,26 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+@layer utilities {
+  .animate-wave {
+    animation: wave 10s linear infinite;
+  }
+
+  @keyframes wave {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .wave-container {
+    position: relative;
+    width: 200%;
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+.bg-soft-beige { background-color: #FAF9F6; }
+.text-warm-brown { color: #5D4037; }
+.bg-warm-brown { background-color: #5D4037; }
+.border-warm-brown { border-color: #5D4037; }
