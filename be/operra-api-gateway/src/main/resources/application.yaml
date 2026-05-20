@@ -2,7 +2,7 @@ server:
   port: 8888
 
 app:
-  api-prefix: /api
+  api-prefix: /api/v1
 
 spring:
   application:
@@ -17,4 +17,4 @@ spring:
               predicates:
                 - Path=${app.api-prefix}/identity/**
               filters:
-                - StripPrefix=1
+                - StripPrefix=2

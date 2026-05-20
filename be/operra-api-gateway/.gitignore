@@ -5,3 +5,8 @@ target/
 
 # Spring Boot
 HELP.md
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # ===== MySQL for Identity Service =====
+  mysql-identity:
+    image: mysql:latest
+    container_name: operra-mysql-identity
+    restart: no
+    environment:
+      MYSQL_ROOT_PASSWORD: hung07192005
+      MYSQL_DATABASE: operra_identity
+      MYSQL_USER: hung
+      MYSQL_PASSWORD: hung07192005
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-identity-data:/var/lib/mysql
+    networks:
+      - operra-network
+
+volumes:
+  mysql-identity-data:
+
+networks:
+  operra-network:
+    driver: bridge

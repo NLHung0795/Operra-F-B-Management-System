@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "UNCATEGORIZE ERROR", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHORIZED(1007,"do not have permission", HttpStatus.FORBIDDEN),
+    USER_EXISTED(1001, "user existed", HttpStatus.BAD_REQUEST)
     ;
 
     private int code;

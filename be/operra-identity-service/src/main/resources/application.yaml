@@ -1,3 +1,13 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /identity
 spring:
-  application:
-    name: operra-identity-service
+  datasource:
+    username: "hung"
+    password: "hung07192005"
+    url: "jdbc:mysql://localhost:3308/operra_identity"
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
