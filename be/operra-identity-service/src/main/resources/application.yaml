@@ -4,10 +4,15 @@ server:
     context-path: /identity
 spring:
   datasource:
-    username: "hung"
-    password: "hung07192005"
-    url: "jdbc:mysql://localhost:3308/operra_identity"
+    username: ${DBMS_USERNAME}
+    password: ${DBMS_PASSWORD}
+    url: ${DBMS_CONNECTION}
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+jwt:
+  signerKey: ${SIGNER_KEY}
+  valid-duration: 3600
+  refreshable-duration: 36000

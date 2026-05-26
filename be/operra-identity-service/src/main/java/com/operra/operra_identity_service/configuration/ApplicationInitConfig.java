@@ -1,24 +1,22 @@
-package com.example.curdandmysql.configuration;
+package com.operra.operra_identity_service.configuration;
 
-import com.example.curdandmysql.constant.PredefinedRole;
-import com.example.curdandmysql.entity.Role;
-import com.example.curdandmysql.entity.User;
-import com.example.curdandmysql.repository.RoleRepository;
-import com.example.curdandmysql.repository.UserRepository;
+import com.operra.operra_identity_service.constant.PredefinedRole;
+import com.operra.operra_identity_service.entity.Role;
+import com.operra.operra_identity_service.entity.UserAccount;
+import com.operra.operra_identity_service.repository.RoleRepository;
+import com.operra.operra_identity_service.repository.UserAccountRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Instant;
 import java.util.HashSet;
-import java.util.Set;
 
 @RequiredArgsConstructor // tu tao constructor cho cac bien ma dc define la final -> ko can autowired nua
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true) // neu cac bien ko dc xdinh cu the chi dinh truy cap thi mac dinh se la private final
@@ -35,32 +33,33 @@ public class ApplicationInitConfig {
     static final String ADMIN_PASSWORD = "admin";
 
     @Bean
-    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository){ // ApplicationRunner se dc khoi chay moi khi app dc khoi dong
+    ApplicationRunner applicationRunner(UserAccountRepository userAccountRepository, RoleRepository roleRepository){
         return args -> {
-            if (userRepository.findUserByUsername(ADMIN_USER_NAME).isEmpty()) {
+            if(userAccountRepository.findUserAccountByUsername(ADMIN_USER_NAME).isEmpty()){
                 roleRepository.save(Role.builder()
-                        .name(PredefinedRole.USER_ROLE)
-                        .description("User role")
+                                .name(PredefinedRole.USER_ROLE)
+                                .description("User role")
                         .build());
 
-                Role adminRole = roleRepository.save(Role.builder()
+                var adminRole = roleRepository.save(Role.builder()
                         .name(PredefinedRole.ADMIN_ROLE)
                         .description("Admin role")
                         .build());
-
-                var roles = new HashSet<Role>();
+                HashSet roles = new HashSet<>();
                 roles.add(adminRole);
 
-                User user = User.builder()
+                UserAccount userAccount = UserAccount.builder()
+                        .creationDate(Instant.now())
                         .username(ADMIN_USER_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
                         .roles(roles)
                         .build();
-
-                userRepository.save(user);
+                userAccountRepository.save(userAccount);
                 log.warn("admin user has been created with default password: admin, please change it");
+
             }
             log.info("Application initialization completed .....");
+
         };
     }
 }

@@ -12,6 +12,7 @@ import com.operra.operra_identity_service.repository.UserAccountRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -25,6 +26,7 @@ public class UserAccountService {
     UserAccountRepository userAccountRepository;
     UserAccountMapper userAccountMapper;
     RoleRepository roleRepository;
+    PasswordEncoder passwordEncoder;
 
     public UserAccountCreationResponse createUserAccount(UserAccountCreationRequest request){
         if(userAccountRepository.existsByUsername(request.getUsername())){
@@ -32,6 +34,7 @@ public class UserAccountService {
         }
 
         var userAccount = userAccountMapper.toUserAccount(request);
+        userAccount.setPassword(passwordEncoder.encode(request.getPassword()));
 
 //        HashSet<Role> roles = new HashSet<>();
 //        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(role -> roles.add(role));

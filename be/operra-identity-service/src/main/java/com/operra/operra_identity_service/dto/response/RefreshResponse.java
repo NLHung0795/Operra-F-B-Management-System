@@ -1,4 +1,4 @@
-package com.example.curdandmysql.dto.response;
+package com.operra.operra_identity_service.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

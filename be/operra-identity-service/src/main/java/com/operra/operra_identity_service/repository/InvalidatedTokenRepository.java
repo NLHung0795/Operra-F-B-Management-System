@@ -1,6 +1,6 @@
 package com.operra.operra_identity_service.repository;
 
-import com.example.curdandmysql.entity.InvalidatedToken;
+import com.operra.operra_identity_service.entity.InvalidatedToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
