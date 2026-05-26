@@ -8,6 +8,10 @@ public enum ErrorCode {
     UNAUTHORIZED(1002,"do not have permission", HttpStatus.FORBIDDEN),
     USER_EXISTED(1001, "user existed", HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED(1003,"UNAUTHENTICATED", HttpStatus.UNAUTHORIZED),
+    COMPANY_NOT_FOUND(2001, "company not found", HttpStatus.NOT_FOUND),
+    BRANCH_NOT_FOUND(2002, "branch not found", HttpStatus.NOT_FOUND),
+    DEPARTMENT_NOT_FOUND(2003, "department not found", HttpStatus.NOT_FOUND),
+    POSITION_NOT_FOUND(2004, "position not found", HttpStatus.NOT_FOUND),
     ;
 
     private int code;
