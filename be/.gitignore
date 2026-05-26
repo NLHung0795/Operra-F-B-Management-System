@@ -17,6 +17,13 @@ build/
 # Spring Boot
 # ====================
 HELP.md
+AGENTS.md
+docs/
+
+# ====================
+# IDE
+# ====================
+.idea/
 
 # ====================
 # Environment & Secrets

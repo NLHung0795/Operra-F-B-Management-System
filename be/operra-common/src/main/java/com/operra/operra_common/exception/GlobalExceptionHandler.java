@@ -32,19 +32,20 @@ public class GlobalExceptionHandler {
                             .build());
         }
 
-//    @ExceptionHandler(value = AccessDeniedException.class)
-//    ResponseEntity<ApiResponse> handlingAccessDeniedException (AccessDeniedException e){ // bắt lỗi khi khác role
-//
-//        //ResponseEntity<T> là class đại diện cho toàn bộ HTTP Response trong Spring (bao gồm: status code + headers + body).
-//        //giúp bạn tùy chỉnh dữ liệu trả về thay vì chỉ trả về object.
-//        log.error(e.toString());
-//        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
-//
-//        return ResponseEntity.status(errorCode.getStatusCode()).body(
-//                ApiResponse.builder()
-//                        .code(errorCode.getCode())
-//                        .message(errorCode.getMessage())
-//                        .build()
-//        );
-//    }
+    @ExceptionHandler(value = AccessDeniedException.class)
+    ResponseEntity<ApiResponse> handlingAccessDeniedException (AccessDeniedException e){ // bắt lỗi khi khác role
+
+        // ResponseEntity<T> đại diện cho toàn bộ HTTP Response gồm status code, headers và body.
+        // Dùng nó để tùy chỉnh dữ liệu trả về thay vì chỉ trả về object.
+        log.error(e.toString());
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(
+                ApiResponse.builder()
+                        .code(errorCode.getCode())
+                        .message(errorCode.getMessage())
+                        .build()
+        );
+    }
+
 }

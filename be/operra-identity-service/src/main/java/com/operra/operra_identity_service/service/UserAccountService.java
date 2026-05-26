@@ -15,6 +15,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 
@@ -36,9 +37,11 @@ public class UserAccountService {
         var userAccount = userAccountMapper.toUserAccount(request);
         userAccount.setPassword(passwordEncoder.encode(request.getPassword()));
 
-//        HashSet<Role> roles = new HashSet<>();
-//        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(role -> roles.add(role));
-//        userAccount.setRoles(roles);
+        HashSet<Role> roles = new HashSet<>();
+        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(role -> roles.add(role));
+        userAccount.setRoles(roles);
+
+        userAccount.setCreationDate(Instant.now());
 
         userAccount = userAccountRepository.save(userAccount);
 
