@@ -33,6 +33,7 @@
         <module>../operra-api-gateway</module>
         <module>../operra-common</module>
         <module>../operra-identity-service</module>
+        <module>../operra-organization-service</module>
     </modules>
 
     <dependencyManagement>  
