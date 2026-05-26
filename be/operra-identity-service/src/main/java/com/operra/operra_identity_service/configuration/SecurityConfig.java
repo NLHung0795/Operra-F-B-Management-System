@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENDPOINTS = {"/auth/login"};
+    private final String[] PUBLIC_ENDPOINTS = {"/auth/login", "/useraccounts/registration"};
 
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
@@ -29,7 +29,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain (HttpSecurity httpSecurity){
         httpSecurity.authorizeHttpRequests(request ->
-                request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                        request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, "/useraccounts")
                         .hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated()
