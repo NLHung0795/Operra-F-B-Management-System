@@ -7,10 +7,10 @@ services:
     container_name: operra-mysql-identity
     restart: no
     environment:
-      MYSQL_ROOT_PASSWORD: hung07192005
-      MYSQL_DATABASE: operra_identity
-      MYSQL_USER: hung
-      MYSQL_PASSWORD: hung07192005
+      MYSQL_ROOT_PASSWORD: ${IDENTITY_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${IDENTITY_DB}
+      MYSQL_USER: ${IDENTITY_USERNAME}
+      MYSQL_PASSWORD: ${IDENTITY_PASSWORD}
     ports:
       - "3308:3306"
     volumes:
@@ -18,8 +18,25 @@ services:
     networks:
       - operra-network
 
+  # ===== PostgreSQL for Organization Service =====
+  postgres-organization:
+    image: postgres:17
+    container_name: operra-postgres-organization
+    restart: no
+    environment:
+      POSTGRES_DB: ${ORGANIZATION_DB}
+      POSTGRES_USER: ${ORGANIZATION_DB_USERNAME}
+      POSTGRES_PASSWORD: ${ORGANIZATION_DB_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-organization-data:/var/lib/postgresql/data
+    networks:
+      - operra-network
+
 volumes:
   mysql-identity-data:
+  postgres-organization-data:
 
 networks:
   operra-network:
