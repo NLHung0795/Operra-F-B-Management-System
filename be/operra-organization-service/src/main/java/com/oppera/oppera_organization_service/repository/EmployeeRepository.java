@@ -11,4 +11,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, String> {
     List<Employee> findByBranchId(String branchId);
 
     List<Employee> findByDepartmentId(String departmentId);
+
+    long countByBranchId(String branchId);
 }

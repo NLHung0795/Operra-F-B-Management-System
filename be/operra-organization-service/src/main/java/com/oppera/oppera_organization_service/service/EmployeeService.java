@@ -59,6 +59,10 @@ public class EmployeeService {
         return employeeMapper.toEmployeeResponse(findEmployeeById(employeeId));
     }
 
+    public EmployeeResponse getInternalById(String employeeId) {
+        return getById(employeeId);
+    }
+
     public EmployeeResponse update(String employeeId, EmployeeUpdateRequest request) {
         var employee = findEmployeeById(employeeId);
         var branch = findBranchById(request.getBranchId());
@@ -93,6 +97,11 @@ public class EmployeeService {
         return employeeRepository.findByDepartmentId(departmentId).stream()
                 .map(employeeMapper::toEmployeeResponse)
                 .toList();
+    }
+
+    public long countByBranch(String branchId) {
+        findBranchById(branchId);
+        return employeeRepository.countByBranchId(branchId);
     }
 
     private com.oppera.oppera_organization_service.entity.Branch findBranchById(String branchId) {
