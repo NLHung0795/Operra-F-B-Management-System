@@ -25,4 +25,6 @@ public class UserAccount {
     String status;
     @ManyToMany
     Set<Role> roles;
+
+    boolean mustChangePassword;
 }

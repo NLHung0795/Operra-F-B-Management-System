@@ -3,8 +3,10 @@ package com.operra.operra_identity_service.service;
 import com.operra.operra_common.exception.AppException;
 import com.operra.operra_common.exception.ErrorCode;
 import com.operra.operra_identity_service.constant.PredefinedRole;
-import com.operra.operra_identity_service.dto.request.UserAccountCreationRequest;
-import com.operra.operra_identity_service.dto.response.UserAccountCreationResponse;
+import com.operra.operra_common.dto.request.UserAccountCreationRequest;
+import com.operra.operra_common.dto.response.UserAccountCreationResponse;
+import com.operra.operra_identity_service.dto.request.UserAccountUpdateRequest;
+import com.operra.operra_identity_service.dto.response.UserAccountUpdateResponse;
 import com.operra.operra_identity_service.entity.Role;
 import com.operra.operra_identity_service.mapper.UserAccountMapper;
 import com.operra.operra_identity_service.repository.RoleRepository;
@@ -12,6 +14,7 @@ import com.operra.operra_identity_service.repository.UserAccountRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +45,7 @@ public class UserAccountService {
         userAccount.setRoles(roles);
 
         userAccount.setCreationDate(Instant.now());
+        userAccount.setMustChangePassword(true);
 
         userAccount = userAccountRepository.save(userAccount);
 
@@ -54,5 +58,20 @@ public class UserAccountService {
         return users.stream()
                 .map(userAccountMapper::toUserAccountCreationResponse)
                 .toList();
+    }
+
+    public UserAccountUpdateResponse update(UserAccountUpdateRequest request){
+        String userAccountId = SecurityContextHolder.getContext().getAuthentication().getName();
+        var userAccount = userAccountRepository.findById(userAccountId)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        userAccount.setPassword(passwordEncoder.encode(request.getPassword()));
+        userAccount.setMustChangePassword(false);
+
+        userAccountRepository.save(userAccount);
+
+        return UserAccountUpdateResponse.builder()
+                .status("success")
+                .build();
     }
 }
