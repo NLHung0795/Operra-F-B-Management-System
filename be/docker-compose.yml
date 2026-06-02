@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ===== MySQL for Identity Service =====
   mysql-identity:
@@ -33,10 +31,25 @@ services:
       - postgres-organization-data:/var/lib/postgresql/data
     networks:
       - operra-network
+  postgres-scheduling:
+    image: postgres:17
+    container_name: operra-postgres-scheduling
+    restart: no
+    environment:
+      POSTGRES_DB: ${SCHEDULING_DB}
+      POSTGRES_USER: ${SCHEDULING_DB_USERNAME}
+      POSTGRES_PASSWORD: ${SCHEDULING_DB_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres-scheduling-data:/var/lib/postgresql/data
+    networks:
+      - operra-network
 
 volumes:
   mysql-identity-data:
   postgres-organization-data:
+  postgres-scheduling-data:
 
 networks:
   operra-network:

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: operra_scheduling_and_attendance_service
+  datasource:
+    url: ${SCHEDULING_DB_CONNECTION}
+    password: ${SCHEDULING_DB_PASSWORD}
+    username: ${SCHEDULING_DB_USERNAME}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-only
+server:
+  port: 8082
+  servlet:
+    context-path: /scheduling
+
