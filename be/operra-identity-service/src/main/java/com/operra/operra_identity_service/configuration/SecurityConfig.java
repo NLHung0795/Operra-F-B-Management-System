@@ -1,7 +1,6 @@
 package com.operra.operra_identity_service.configuration;
 
 import com.operra.operra_identity_service.enums.Role;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,15 +20,16 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENDPOINTS = {"/auth/**", "/useraccounts/registration"};
+    private final CustomJwtDecoder customJwtDecoder;
 
-    @Autowired
-    private CustomJwtDecoder customJwtDecoder;
+    public SecurityConfig(CustomJwtDecoder customJwtDecoder) {
+        this.customJwtDecoder = customJwtDecoder;
+    }
 
     @Bean
-    public SecurityFilterChain filterChain (HttpSecurity httpSecurity){
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request ->
-                        request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                        request.requestMatchers("/auth/**", "/useraccounts/registration").permitAll()
                         .requestMatchers(HttpMethod.GET, "/useraccounts")
                         .hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated()
