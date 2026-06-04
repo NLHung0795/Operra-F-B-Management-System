@@ -14,3 +14,7 @@ server:
   servlet:
     context-path: /scheduling
 
+app:
+  services:
+    organization: http://localhost:8081/organization
+

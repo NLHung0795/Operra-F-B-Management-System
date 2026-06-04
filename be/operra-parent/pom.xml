@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version> <!-- Bạn có thể điều chỉnh version Spring Boot ở đây -->
+        <version>3.5.14</version> <!-- Bạn có thể điều chỉnh version Spring Boot ở đây -->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -22,8 +22,8 @@
     <description>Parent POM for Operra Microservices</description>
 
     <properties>
-        <java.version>22</java.version>
-        <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <java.version>21</java.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
         <projectlombok-lombok.version>1.18.44</projectlombok-lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
     </properties>
@@ -34,6 +34,7 @@
         <module>../operra-common</module>
         <module>../operra-identity-service</module>
         <module>../operra-organization-service</module>
+        <module>../operra-scheduling-and-attendance-service</module>
     </modules>
 
     <dependencyManagement>  

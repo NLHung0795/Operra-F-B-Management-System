@@ -24,6 +24,12 @@ spring:
                 - Path=${app.api-prefix}/organization/**
               filters:
                 - StripPrefix=2
+            - id: scheduling_service
+              uri: http://localhost:8082
+              predicates:
+                - Path=${app.api-prefix}/scheduling/**
+              filters:
+                - StripPrefix=2
 
 
 
