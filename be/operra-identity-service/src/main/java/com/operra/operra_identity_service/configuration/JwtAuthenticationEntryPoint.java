@@ -1,6 +1,7 @@
 package com.operra.operra_identity_service.configuration;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.operra.operra_common.dto.ApiResponse;
 import com.operra.operra_common.exception.ErrorCode;
 import jakarta.servlet.ServletException;
@@ -9,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 

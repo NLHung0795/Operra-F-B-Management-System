@@ -1,5 +1,7 @@
 package com.operra.api_gateway.configuration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.operra.api_gateway.service.IdentityService;
 import com.operra.operra_common.dto.ApiResponse;
 import lombok.AccessLevel;
@@ -21,7 +23,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,8 +58,13 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         List<String> authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION);
-        if (CollectionUtils.isEmpty(authHeader))
-            return unauthenticated(exchange.getResponse());
+        if (CollectionUtils.isEmpty(authHeader)) {
+            try {
+                return unauthenticated(exchange.getResponse());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         String token = authHeader.getFirst().replace("Bearer ", "");
 //        log.info("Token {}", token);
@@ -68,8 +74,20 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 return chain.filter(exchange);
             }
 
-            else return unauthenticated(exchange.getResponse());
-        }).onErrorResume(throwable -> unauthenticated(exchange.getResponse()));
+            else {
+                try {
+                    return unauthenticated(exchange.getResponse());
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).onErrorResume(throwable -> {
+            try {
+                return unauthenticated(exchange.getResponse());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
     }
 
@@ -78,7 +96,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 .anyMatch(s -> request.getURI().getPath().matches(apiPrefix+s));
     }
 
-    Mono<Void> unauthenticated(ServerHttpResponse response){
+    Mono<Void> unauthenticated(ServerHttpResponse response) throws JsonProcessingException {
         ApiResponse<?> apiRespone = ApiResponse.builder()
                 .code(1401)
                 .message("Unauthenticated")
