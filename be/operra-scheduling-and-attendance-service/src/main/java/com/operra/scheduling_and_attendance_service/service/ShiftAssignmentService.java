@@ -2,6 +2,7 @@ package com.operra.scheduling_and_attendance_service.service;
 
 import com.operra.operra_common.exception.AppException;
 import com.operra.operra_common.exception.ErrorCode;
+import com.operra.scheduling_and_attendance_service.dto.request.BulkShiftAssignmentRequest;
 import com.operra.scheduling_and_attendance_service.dto.request.ShiftAssignmentRequest;
 import com.operra.scheduling_and_attendance_service.dto.response.ShiftAssignmentResponse;
 import com.operra.scheduling_and_attendance_service.entity.WorkAssignment;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -58,5 +60,17 @@ public class ShiftAssignmentService {
         response.setEmployee(employeeResponse.getResult());
         response.setAssignedBy(assignerResponse.getResult());
         return response;
+    }
+
+    public List<ShiftAssignmentResponse> createBulk(BulkShiftAssignmentRequest request) {
+        return request.getAssignments().stream()
+                .map(item -> ShiftAssignmentRequest.builder()
+                        .employeeId(item.getEmployeeId())
+                        .workAssignmentId(item.getWorkAssignmentId())
+                        .assignedBy(request.getAssignedBy())
+                        .date(item.getDate())
+                        .build())
+                .map(this::create)
+                .toList();
     }
 }
