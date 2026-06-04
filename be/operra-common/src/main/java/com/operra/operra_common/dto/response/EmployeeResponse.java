@@ -1,6 +1,5 @@
-package com.oppera.oppera_organization_service.dto.response;
+package com.operra.operra_common.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,6 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EmployeeResponse {
+    String id;
     String departmentName;
     String positionName;
     String branchName;

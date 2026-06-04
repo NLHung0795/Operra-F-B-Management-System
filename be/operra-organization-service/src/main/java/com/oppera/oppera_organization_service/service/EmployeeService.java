@@ -2,9 +2,10 @@ package com.oppera.oppera_organization_service.service;
 
 import com.operra.operra_common.exception.AppException;
 import com.operra.operra_common.exception.ErrorCode;
+import com.operra.operra_common.dto.PageResponse;
 import com.oppera.oppera_organization_service.dto.request.EmployeeRequest;
 import com.oppera.oppera_organization_service.dto.request.EmployeeUpdateRequest;
-import com.oppera.oppera_organization_service.dto.response.EmployeeResponse;
+import com.operra.operra_common.dto.response.EmployeeResponse;
 import com.oppera.oppera_organization_service.entity.Department;
 import com.oppera.oppera_organization_service.entity.Position;
 import com.oppera.oppera_organization_service.mapper.EmployeeMapper;
@@ -17,6 +18,10 @@ import com.oppera.oppera_organization_service.repository.httpclient.UserAccountC
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +38,7 @@ public class EmployeeService {
     UserAccountClient userAccountClient;
     EmployeeMapper employeeMapper;
     UserAccountMapper userAccountMapper;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     public EmployeeResponse create(EmployeeRequest request){
         var employee = employeeMapper.toEmployee(request);
@@ -52,6 +58,18 @@ public class EmployeeService {
             throw new AppException(ErrorCode.USER_ACCOUNT_ERROR);
         employee = employeeRepository.save(employee);
 
+//        EmployeeEvent employeeEvent = EmployeeEvent.builder()
+//                .employeeId(employee.getId())
+//                .eventId(UUID.randomUUID().toString())
+//                .branchId(branch.getId())
+//                .departmentId(department.getId())
+//                .eventType("employee.created")
+//                .positionId(position.getId())
+//                .occurredAt(Instant.now())
+//                .build();
+//
+//        kafkaTemplate.send("employee-create-delivery", employeeEvent);
+
         return employeeMapper.toEmployeeResponse(employee);
     }
 
@@ -61,6 +79,25 @@ public class EmployeeService {
 
     public EmployeeResponse getInternalById(String employeeId) {
         return getById(employeeId);
+    }
+
+    public PageResponse<EmployeeResponse> getAll(int page, int size){
+        Sort sort = Sort.by("fullname").ascending();
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        var pageData = employeeRepository.findAll(pageable);
+
+        var employeeList = pageData.stream()
+                .map(employeeMapper::toEmployeeResponse)
+                .toList();
+
+        return PageResponse.<EmployeeResponse>builder()
+                .data(employeeList)
+                .pageSize(pageData.getSize())
+                .currentPage(page)
+                .totalElements(pageData.getTotalElements())
+                .totalPages(pageData.getTotalPages())
+                .build();
     }
 
     public EmployeeResponse update(String employeeId, EmployeeUpdateRequest request) {

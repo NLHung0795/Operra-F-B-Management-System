@@ -1,7 +1,7 @@
 package com.oppera.oppera_organization_service.controller;
 
 import com.operra.operra_common.dto.ApiResponse;
-import com.oppera.oppera_organization_service.dto.response.EmployeeResponse;
+import com.operra.operra_common.dto.response.EmployeeResponse;
 import com.oppera.oppera_organization_service.service.EmployeeService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

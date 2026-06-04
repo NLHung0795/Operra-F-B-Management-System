@@ -2,7 +2,7 @@ package com.oppera.oppera_organization_service.mapper;
 
 import com.oppera.oppera_organization_service.dto.request.EmployeeRequest;
 import com.oppera.oppera_organization_service.dto.request.EmployeeUpdateRequest;
-import com.oppera.oppera_organization_service.dto.response.EmployeeResponse;
+import com.operra.operra_common.dto.response.EmployeeResponse;
 import com.oppera.oppera_organization_service.entity.Employee;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
