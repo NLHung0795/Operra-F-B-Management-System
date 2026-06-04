@@ -1,27 +1,22 @@
 package com.oppera.oppera_organization_service.controller;
 
 import com.operra.operra_common.dto.ApiResponse;
+import com.operra.operra_common.dto.PageResponse;
 import com.oppera.oppera_organization_service.dto.request.EmployeeRequest;
 import com.oppera.oppera_organization_service.dto.request.EmployeeStatusUpdateRequest;
 import com.oppera.oppera_organization_service.dto.request.EmployeeUpdateRequest;
-import com.oppera.oppera_organization_service.dto.response.EmployeeResponse;
+import com.operra.operra_common.dto.response.EmployeeResponse;
 import com.oppera.oppera_organization_service.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/employees")
+    @RequestMapping("/employees")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmployeeController {
@@ -31,6 +26,15 @@ public class EmployeeController {
     ApiResponse<EmployeeResponse> createEmployee(@RequestBody @Valid EmployeeRequest request){
         return ApiResponse.<EmployeeResponse>builder()
                 .result(employeeService.create(request))
+                .build();
+    }
+
+    @GetMapping
+    ApiResponse<PageResponse<EmployeeResponse>> getAllEmployees(
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "20") int size){
+        return ApiResponse.<PageResponse<EmployeeResponse>>builder()
+                .result(employeeService.getAll(page, size))
                 .build();
     }
 
