@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/internal/employees")
 @RequiredArgsConstructor
@@ -29,6 +31,13 @@ public class InternalEmployeeController {
     ApiResponse<Long> countEmployeesByBranch(@PathVariable String branchId) {
         return ApiResponse.<Long>builder()
                 .result(employeeService.countByBranch(branchId))
+                .build();
+    }
+
+    @GetMapping("/branch/{branchId}")
+    ApiResponse<List<EmployeeResponse>> getEmployeesByBranch(@PathVariable String branchId) {
+        return ApiResponse.<List<EmployeeResponse>>builder()
+                .result(employeeService.getByBranch(branchId))
                 .build();
     }
 }

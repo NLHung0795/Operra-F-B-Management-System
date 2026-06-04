@@ -13,6 +13,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ShiftAssignmentResponse {
+    String id;
     EmployeeResponse employee;
     WorkAssignmentResponse workAssignment;
     EmployeeResponse assignedBy;
