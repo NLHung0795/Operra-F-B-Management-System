@@ -16,6 +16,8 @@ public enum ErrorCode {
     DEPARTMENT_NOT_FOUND(2003, "department not found", HttpStatus.NOT_FOUND),
     POSITION_NOT_FOUND(2004, "position not found", HttpStatus.NOT_FOUND),
     EMPLOYEE_NOT_FOUND(2005, "employee not found", HttpStatus.NOT_FOUND),
+    WORK_ASSIGNMENT_NOT_FOUND(3001, "work assignment not found", HttpStatus.NOT_FOUND),
+    SHIFT_ASSIGNMENT_EXISTED(3002, "shift assignment existed", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;
