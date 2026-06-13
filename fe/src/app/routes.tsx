@@ -12,6 +12,11 @@ import { Products } from "./pages/Products";
 import { Expenses } from "./pages/Expenses";
 import { CompanyManagement } from "./pages/CompanyManagement";
 import { BranchManagement } from "./pages/BranchManagement";
+import { Invoices } from "./pages/Invoices";
+import { Settings } from "./pages/Settings";
+import { Login } from "./pages/Login";
+import { ChangePassword } from "./pages/ChangePassword";
+import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute";
 
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center h-full text-center">
@@ -24,6 +29,14 @@ const NotFound = () => (
 );
 
 export const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: <PublicRoute element={<Login />} />,
+  },
+  {
+    path: "/change-password",
+    element: <ChangePassword />,
+  },
   {
     path: "/",
     Component: MainLayout,
@@ -43,9 +56,9 @@ export const router = createBrowserRouter([
       { path: "expenses", Component: Expenses },
       { path: "companies", Component: CompanyManagement },
       { path: "branches", Component: BranchManagement },
-      { path: "invoices", Component: NotFound },
+      { path: "invoices", Component: Invoices },
       
-      { path: "settings", Component: NotFound },
+      { path: "settings", Component: Settings },
       { path: "*", Component: NotFound },
     ],
   },

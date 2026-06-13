@@ -19,11 +19,14 @@ import {
   CalendarHeart,
   FileText,
   DollarSign,
-  MapPin
+  MapPin,
+  PlugZap
 } from 'lucide-react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { identityApi } from '../lib/api';
+import { Toaster } from './ui/sonner';
 
 function cn(...inputs: any[]) {
   return twMerge(clsx(inputs));
@@ -31,32 +34,91 @@ function cn(...inputs: any[]) {
 
 export type AppMode = 'hrm' | 'pos';
 
-const sidebarItems = {
+interface SidebarItem {
+  icon: any;
+  label: string;
+  path: string;
+  roles?: string[];
+}
+
+const sidebarItems: Record<AppMode, SidebarItem[]> = {
   hrm: [
     { icon: LayoutDashboard, label: 'Tổng quan HRM', path: '/' },
-    { icon: Users, label: 'Nhân sự', path: '/employees' },
-    { icon: CalendarCheck, label: 'Phân ca (Shift)', path: '/shifts' },
-    { icon: Clock, label: 'Chấm công', path: '/attendance' },
-    { icon: CalendarHeart, label: 'Nghỉ phép', path: '/leaves' },
-    { icon: Wallet, label: 'Bảng lương', path: '/payroll' },
-    { icon: Settings, label: 'Cài đặt', path: '/settings' },
+    { icon: Users, label: 'Nhân sự', path: '/employees', roles: ['ADMIN', 'MANAGER'] },
+    { icon: CalendarCheck, label: 'Phân ca (Shift)', path: '/shifts', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
+    { icon: Clock, label: 'Chấm công', path: '/attendance', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
+    { icon: CalendarHeart, label: 'Nghỉ phép', path: '/leaves', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
+    { icon: Wallet, label: 'Bảng lương', path: '/payroll', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
+    { icon: Settings, label: 'Cài đặt', path: '/settings', roles: ['ADMIN'] },
   ],
   pos: [
-    { icon: LayoutDashboard, label: 'Báo cáo Kinh doanh', path: '/' },
-    { icon: ShoppingCart, label: 'Bán hàng (POS)', path: '/pos' },
-    { icon: Briefcase, label: 'Ca bán hàng', path: '/cash-session' },
-    { icon: Coffee, label: 'Thực đơn (Menu)', path: '/products' },
-    { icon: FileText, label: 'Hóa đơn', path: '/invoices' },
-    { icon: Building2, label: 'Công ty', path: '/companies' },
-    { icon: MapPin, label: 'Chi nhánh', path: '/branches' },
-    { icon: DollarSign, label: 'Thu chi (Expense)', path: '/expenses' },
-    { icon: Settings, label: 'Cài đặt quán', path: '/settings' },
+    { icon: LayoutDashboard, label: 'Báo cáo Kinh doanh', path: '/', roles: ['ADMIN', 'MANAGER'] },
+    { icon: ShoppingCart, label: 'Bán hàng (POS)', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: Briefcase, label: 'Ca bán hàng', path: '/cash-session', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: Coffee, label: 'Thực đơn (Menu)', path: '/products', roles: ['ADMIN', 'MANAGER'] },
+    { icon: FileText, label: 'Hóa đơn', path: '/invoices', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: Building2, label: 'Công ty', path: '/companies', roles: ['ADMIN'] },
+    { icon: MapPin, label: 'Chi nhánh', path: '/branches', roles: ['ADMIN'] },
+    { icon: DollarSign, label: 'Thu chi (Expense)', path: '/expenses', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: Settings, label: 'Cài đặt quán', path: '/settings', roles: ['ADMIN'] },
   ]
 };
 
+const getAuthData = () => {
+  const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+  if (!token) return { username: "Guest", roles: [] as string[], permissions: [] as string[] };
+  
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    const scope: string = payload.scope || "";
+    const authorities = scope.split(" ");
+    
+    const roles = authorities
+      .filter(a => a.startsWith("ROLE_"))
+      .map(r => r.replace("ROLE_", ""));
+    const permissions = authorities.filter(a => !a.startsWith("ROLE_"));
+    
+    return {
+      username: payload.sub || "User",
+      roles,
+      permissions
+    };
+  } catch (e) {
+    return { username: "Guest", roles: [] as string[], permissions: [] as string[] };
+  }
+};
+
+const getRoleLabel = (roles: string[]) => {
+  if (roles.includes("ADMIN")) return "Quản trị viên";
+  if (roles.includes("MANAGER")) return "Quản lý";
+  if (roles.includes("CASHIER")) return "Thu ngân";
+  if (roles.includes("EMPLOYEE")) return "Nhân viên";
+  return "Nhân viên";
+};
+
 export function MainLayout() {
+  const isMock = import.meta.env.VITE_USE_MOCK_DATA === "true";
+  const auth = getAuthData();
+  const userRoles = auth.roles.length > 0 ? auth.roles : (isMock ? ['ADMIN'] : ['EMPLOYEE']);
+  
+  const canAccessHrm = userRoles.includes("ADMIN") || userRoles.includes("MANAGER") || userRoles.includes("EMPLOYEE");
+  const canAccessPos = userRoles.includes("ADMIN") || userRoles.includes("MANAGER") || userRoles.includes("CASHIER");
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [mode, setMode] = useState<AppMode>('hrm');
+  const [mode, setMode] = useState<AppMode>(() => {
+    if (canAccessHrm) return 'hrm';
+    if (canAccessPos) return 'pos';
+    return 'hrm';
+  });
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -68,7 +130,26 @@ export function MainLayout() {
     }
   };
 
-  const currentItems = sidebarItems[mode];
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || '';
+      if (token) {
+        await identityApi.logout(token);
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('username');
+      navigate('/login', { replace: true });
+    }
+  };
+
+  const currentItems = sidebarItems[mode].filter(item => {
+    if (!item.roles) return true;
+    return item.roles.some(role => userRoles.includes(role));
+  });
 
   return (
     <div className="flex h-screen bg-[#FAF9F6] text-[#2C1810]">
@@ -93,44 +174,48 @@ export function MainLayout() {
         </div>
 
         {isSidebarOpen ? (
-          <div className="p-4 border-b border-white/10 shrink-0 relative z-10">
-            <div className="bg-white/10 p-1 rounded-xl flex items-center relative">
-              <div 
-                className={cn(
-                  "absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#FAF9F6] rounded-lg shadow-sm transition-all duration-300",
-                  mode === 'hrm' ? "left-1" : "left-[calc(50%+2px)]"
-                )}
-              />
+          (canAccessHrm && canAccessPos) && (
+            <div className="p-4 border-b border-white/10 shrink-0 relative z-10">
+              <div className="bg-white/10 p-1 rounded-xl flex items-center relative">
+                <div 
+                  className={cn(
+                    "absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#FAF9F6] rounded-lg shadow-sm transition-all duration-300",
+                    mode === 'hrm' ? "left-1" : "left-[calc(50%+2px)]"
+                  )}
+                />
+                <button 
+                  onClick={() => handleModeSwitch('hrm')}
+                  className={cn(
+                    "relative flex-1 py-1.5 px-2 text-sm font-semibold rounded-lg transition-colors z-10",
+                    mode === 'hrm' ? "text-[#3E2723]" : "text-white/80 hover:text-white"
+                  )}
+                >
+                  iPOS HRM
+                </button>
+                <button 
+                  onClick={() => handleModeSwitch('pos')}
+                  className={cn(
+                    "relative flex-1 py-1.5 px-2 text-sm font-semibold rounded-lg transition-colors z-10",
+                    mode === 'pos' ? "text-[#3E2723]" : "text-white/80 hover:text-white"
+                  )}
+                >
+                  POS & Sales
+                </button>
+              </div>
+            </div>
+          )
+        ) : (
+          (canAccessHrm && canAccessPos) && (
+            <div className="p-4 border-b border-white/10 flex justify-center shrink-0 relative z-10">
               <button 
-                onClick={() => handleModeSwitch('hrm')}
-                className={cn(
-                  "relative flex-1 py-1.5 px-2 text-sm font-semibold rounded-lg transition-colors z-10",
-                  mode === 'hrm' ? "text-[#3E2723]" : "text-white/80 hover:text-white"
-                )}
+                onClick={() => handleModeSwitch(mode === 'hrm' ? 'pos' : 'hrm')}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white"
+                title={`Switch to ${mode === 'hrm' ? 'POS' : 'HRM'}`}
               >
-                iPOS HRM
-              </button>
-              <button 
-                onClick={() => handleModeSwitch('pos')}
-                className={cn(
-                  "relative flex-1 py-1.5 px-2 text-sm font-semibold rounded-lg transition-colors z-10",
-                  mode === 'pos' ? "text-[#3E2723]" : "text-white/80 hover:text-white"
-                )}
-              >
-                POS & Sales
+                {mode === 'hrm' ? <CreditCard className="w-5 h-5" /> : <Users className="w-5 h-5" />}
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="p-4 border-b border-white/10 flex justify-center shrink-0 relative z-10">
-            <button 
-              onClick={() => handleModeSwitch(mode === 'hrm' ? 'pos' : 'hrm')}
-              className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white"
-              title={`Switch to ${mode === 'hrm' ? 'POS' : 'HRM'}`}
-            >
-              {mode === 'hrm' ? <CreditCard className="w-5 h-5" /> : <Users className="w-5 h-5" />}
-            </button>
-          </div>
+          )
         )}
 
         <nav className="flex-1 py-4 space-y-1 px-3 overflow-y-auto relative z-10">
@@ -152,7 +237,9 @@ export function MainLayout() {
         </nav>
 
         <div className="p-4 border-t border-white/10 shrink-0 relative z-10">
-          <button className={cn(
+          <button 
+            onClick={handleLogout}
+            className={cn(
             "flex items-center w-full px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-xl transition-all"
           )}>
             <LogOut className="w-5 h-5 shrink-0" />
@@ -193,8 +280,10 @@ export function MainLayout() {
             </button>
             <div className="flex items-center gap-3 pl-4 border-l border-[#EFEBE9]">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-[#3E2723] leading-tight">Admin / Quản lý</p>
-                <p className="text-xs text-[#8D6E63]">Chi nhánh Quận 1</p>
+                <p className="text-sm font-semibold text-[#3E2723] leading-tight">
+                  {localStorage.getItem('username') || auth.username || 'Nhân viên'}
+                </p>
+                <p className="text-xs text-[#8D6E63]">{getRoleLabel(userRoles)}</p>
               </div>
               <img 
                 src="https://images.unsplash.com/photo-1758129090913-b1c6953d47d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMGJ1c2luZXNzJTIwcGVyc29uJTIwcHJvZmlsZXxlbnwxfHx8fDE3NzU0NjQzNDV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" 
@@ -207,6 +296,7 @@ export function MainLayout() {
 
         <main className="flex-1 overflow-y-auto bg-[#FAF9F6] p-6">
           <Outlet context={{ mode }} />
+          <Toaster />
         </main>
       </div>
     </div>
