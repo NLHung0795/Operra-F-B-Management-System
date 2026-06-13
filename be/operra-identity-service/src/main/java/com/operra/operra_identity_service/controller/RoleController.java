@@ -7,6 +7,7 @@ import com.operra.operra_identity_service.service.RoleService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/roles")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@PreAuthorize("hasRole('ADMIN')")
 public class RoleController {
 
     RoleService roleService;

@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class UserAccountController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<UserAccountCreationResponse>> getAll(){
         return ApiResponse.<List<UserAccountCreationResponse>>builder()
                 .result(userAccountService.getAllUserAccount())
@@ -36,7 +38,7 @@ public class UserAccountController {
     }
 
     @PutMapping
-    ApiResponse<UserAccountUpdateResponse> updatePassword(UserAccountUpdateRequest request){
+    ApiResponse<UserAccountUpdateResponse> updatePassword(@RequestBody @Valid UserAccountUpdateRequest request){
         return ApiResponse.<UserAccountUpdateResponse>builder()
                 .result(userAccountService.update(request))
                 .build();

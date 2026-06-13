@@ -41,7 +41,7 @@ public class UserAccountService {
         userAccount.setPassword(passwordEncoder.encode(request.getPassword()));
 
         HashSet<Role> roles = new HashSet<>();
-        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(role -> roles.add(role));
+        roleRepository.findById(PredefinedRole.EMPLOYEE_ROLE).ifPresent(role -> roles.add(role));
         userAccount.setRoles(roles);
 
         userAccount.setCreationDate(Instant.now());
