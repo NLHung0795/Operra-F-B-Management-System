@@ -7,6 +7,7 @@ import com.operra.scheduling_and_attendance_service.dto.response.WorkAssignmentR
 import com.operra.scheduling_and_attendance_service.entity.WorkAssignment;
 import com.operra.scheduling_and_attendance_service.mapper.WorkAssignmentMapper;
 import com.operra.scheduling_and_attendance_service.repository.WorkAssignmentRepository;
+import com.operra.scheduling_and_attendance_service.repository.ShiftAssignmentRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +21,7 @@ import java.util.List;
 public class WorkAssignmentService {
     WorkAssignmentRepository workAssignmentRepository;
     WorkAssignmentMapper workAssignmentMapper;
+    ShiftAssignmentRepository shiftAssignmentRepository;
 
     public WorkAssignmentResponse create(WorkAssignmentRequest request) {
         var workAssignment = workAssignmentMapper.toWorkAssignment(request);
@@ -49,7 +51,11 @@ public class WorkAssignmentService {
     }
 
     public void delete(String workAssignmentId) {
-        workAssignmentRepository.delete(findEntityById(workAssignmentId));
+        var workAssignment = findEntityById(workAssignmentId);
+        if (shiftAssignmentRepository.existsByWorkAssignment(workAssignment)) {
+            throw new AppException(ErrorCode.WORK_ASSIGNMENT_IN_USE);
+        }
+        workAssignmentRepository.delete(workAssignment);
     }
 
     public WorkAssignment findEntityById(String workAssignmentId) {

@@ -26,4 +26,6 @@ public interface ShiftAssignmentRepository extends JpaRepository<ShiftAssignment
     List<ShiftAssignment> findByEmployeeIdAndDateBetween(String employeeId, LocalDate fromDate, LocalDate toDate);
 
     List<ShiftAssignment> findByDateAndEmployeeIdIn(LocalDate date, Collection<String> employeeIds);
+
+    boolean existsByWorkAssignment(WorkAssignment workAssignment);
 }

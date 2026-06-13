@@ -21,6 +21,7 @@ public enum ErrorCode {
     WORK_ASSIGNMENT_NOT_FOUND(3001, "work assignment not found", HttpStatus.NOT_FOUND),
     SHIFT_ASSIGNMENT_EXISTED(3002, "shift assignment existed", HttpStatus.BAD_REQUEST),
     SHIFT_ASSIGNMENT_NOT_FOUND(3003, "shift assignment not found", HttpStatus.NOT_FOUND),
+    WORK_ASSIGNMENT_IN_USE(3004, "work assignment in use", HttpStatus.BAD_REQUEST),
     INVALID_ATTENDANCE_METHOD(4001, "invalid attendance method", HttpStatus.BAD_REQUEST),
     INVALID_ATTENDANCE_LOCATION(4002, "invalid attendance location", HttpStatus.BAD_REQUEST),
     INVALID_ATTENDANCE_QR(4003, "invalid attendance qr", HttpStatus.BAD_REQUEST),

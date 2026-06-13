@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +33,7 @@ public class ShiftAssignmentController {
     ShiftAssignmentService shiftAssignmentService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_SHIFT_ASSIGNMENT')")
     ApiResponse<ShiftAssignmentResponse> createShiftAssignment(@RequestBody @Valid ShiftAssignmentRequest request){
         return ApiResponse.<ShiftAssignmentResponse>builder()
                 .result(shiftAssignmentService.create(request))
@@ -39,6 +41,7 @@ public class ShiftAssignmentController {
     }
 
     @PostMapping("/bulk")
+    @PreAuthorize("hasAuthority('MANAGE_SHIFT_ASSIGNMENT')")
     ApiResponse<List<ShiftAssignmentResponse>> createBulkShiftAssignments(
             @RequestBody @Valid BulkShiftAssignmentRequest request
     ){
@@ -69,6 +72,7 @@ public class ShiftAssignmentController {
     }
 
     @PutMapping("/{shiftAssignmentId}")
+    @PreAuthorize("hasAuthority('MANAGE_SHIFT_ASSIGNMENT')")
     ApiResponse<ShiftAssignmentResponse> updateShiftAssignment(
             @PathVariable String shiftAssignmentId,
             @RequestBody @Valid ShiftAssignmentUpdateRequest request
@@ -79,6 +83,7 @@ public class ShiftAssignmentController {
     }
 
     @DeleteMapping("/{shiftAssignmentId}")
+    @PreAuthorize("hasAuthority('MANAGE_SHIFT_ASSIGNMENT')")
     ApiResponse<Void> deleteShiftAssignment(@PathVariable String shiftAssignmentId) {
         shiftAssignmentService.delete(shiftAssignmentId);
         return ApiResponse.<Void>builder().build();

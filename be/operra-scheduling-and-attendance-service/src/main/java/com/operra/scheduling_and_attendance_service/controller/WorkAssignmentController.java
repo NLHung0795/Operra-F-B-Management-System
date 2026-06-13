@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ public class WorkAssignmentController {
     WorkAssignmentService workAssignmentService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_WORK_ASSIGNMENT')")
     ApiResponse<WorkAssignmentResponse> createWorkAssignment(@RequestBody @Valid WorkAssignmentRequest request) {
         return ApiResponse.<WorkAssignmentResponse>builder()
                 .result(workAssignmentService.create(request))
@@ -49,6 +51,7 @@ public class WorkAssignmentController {
     }
 
     @PutMapping("/{workAssignmentId}")
+    @PreAuthorize("hasAuthority('MANAGE_WORK_ASSIGNMENT')")
     ApiResponse<WorkAssignmentResponse> updateWorkAssignment(@PathVariable String workAssignmentId,
                                                              @RequestBody @Valid WorkAssignmentRequest request) {
         return ApiResponse.<WorkAssignmentResponse>builder()
@@ -57,6 +60,7 @@ public class WorkAssignmentController {
     }
 
     @DeleteMapping("/{workAssignmentId}")
+    @PreAuthorize("hasAuthority('MANAGE_WORK_ASSIGNMENT')")
     ApiResponse<Void> deleteWorkAssignment(@PathVariable String workAssignmentId) {
         workAssignmentService.delete(workAssignmentId);
         return ApiResponse.<Void>builder().build();
