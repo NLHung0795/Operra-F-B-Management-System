@@ -11,18 +11,20 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-    @RequestMapping("/employees")
+@RequestMapping("/employees")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmployeeController {
     EmployeeService employeeService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_EMPLOYEE')")
     ApiResponse<EmployeeResponse> createEmployee(@RequestBody @Valid EmployeeRequest request){
         return ApiResponse.<EmployeeResponse>builder()
                 .result(employeeService.create(request))
@@ -30,6 +32,7 @@ public class EmployeeController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('VIEW_EMPLOYEE')")
     ApiResponse<PageResponse<EmployeeResponse>> getAllEmployees(
             @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             @RequestParam(value = "size", required = false, defaultValue = "20") int size){
@@ -39,6 +42,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/{employeeId}")
+    @PreAuthorize("hasAuthority('VIEW_EMPLOYEE')")
     ApiResponse<EmployeeResponse> getEmployee(@PathVariable String employeeId) {
         return ApiResponse.<EmployeeResponse>builder()
                 .result(employeeService.getById(employeeId))
@@ -46,6 +50,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{employeeId}")
+    @PreAuthorize("hasAuthority('MANAGE_EMPLOYEE')")
     ApiResponse<EmployeeResponse> updateEmployee(@PathVariable String employeeId,
                                                  @RequestBody @Valid EmployeeUpdateRequest request) {
         return ApiResponse.<EmployeeResponse>builder()
@@ -54,6 +59,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{employeeId}/status")
+    @PreAuthorize("hasAuthority('MANAGE_EMPLOYEE')")
     ApiResponse<EmployeeResponse> updateEmployeeStatus(@PathVariable String employeeId,
                                                        @RequestBody @Valid EmployeeStatusUpdateRequest request) {
         return ApiResponse.<EmployeeResponse>builder()
@@ -62,6 +68,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/branch/{branchId}")
+    @PreAuthorize("hasAuthority('VIEW_EMPLOYEE')")
     ApiResponse<List<EmployeeResponse>> getEmployeesByBranch(@PathVariable String branchId) {
         return ApiResponse.<List<EmployeeResponse>>builder()
                 .result(employeeService.getByBranch(branchId))
@@ -69,6 +76,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/department/{departmentId}")
+    @PreAuthorize("hasAuthority('VIEW_EMPLOYEE')")
     ApiResponse<List<EmployeeResponse>> getEmployeesByDepartment(@PathVariable String departmentId) {
         return ApiResponse.<List<EmployeeResponse>>builder()
                 .result(employeeService.getByDepartment(departmentId))

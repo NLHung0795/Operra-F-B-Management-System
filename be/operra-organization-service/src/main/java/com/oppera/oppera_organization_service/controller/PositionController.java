@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ public class PositionController {
     PositionService positionService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_POSITION')")
     ApiResponse<PositionResponse> createPosition(@RequestBody @Valid PositionRequest request) {
         return ApiResponse.<PositionResponse>builder()
                 .result(positionService.create(request))
@@ -49,6 +51,7 @@ public class PositionController {
     }
 
     @PutMapping("/{positionId}")
+    @PreAuthorize("hasAuthority('MANAGE_POSITION')")
     ApiResponse<PositionResponse> updatePosition(@PathVariable String positionId,
                                                  @RequestBody @Valid PositionRequest request) {
         return ApiResponse.<PositionResponse>builder()
@@ -57,6 +60,7 @@ public class PositionController {
     }
 
     @DeleteMapping("/{positionId}")
+    @PreAuthorize("hasAuthority('MANAGE_POSITION')")
     ApiResponse<Void> deletePosition(@PathVariable String positionId) {
         positionService.delete(positionId);
         return ApiResponse.<Void>builder().build();

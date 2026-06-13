@@ -12,10 +12,12 @@ public class AuthenticationRequestInterceptor implements RequestInterceptor {
         ServletRequestAttributes servletRequestAttributes =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes(); // Lấy request hiện tại từ thread
 
-        var authHeader =servletRequestAttributes.getRequest().getHeader("Authorization"); // Lấy JWT từ request gốc
+        if (servletRequestAttributes != null) {
+            var authHeader = servletRequestAttributes.getRequest().getHeader("Authorization"); // Lấy JWT từ request gốc
 
-        if(StringUtils.hasText(authHeader)){
-            requestTemplate.header("Authorization", authHeader); //Gắn JWT vào request mới
+            if (StringUtils.hasText(authHeader)) {
+                requestTemplate.header("Authorization", authHeader); //Gắn JWT vào request mới
+            }
         }
     }
 }

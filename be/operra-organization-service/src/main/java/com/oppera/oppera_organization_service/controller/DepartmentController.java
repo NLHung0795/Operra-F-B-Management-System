@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +28,7 @@ public class DepartmentController {
     DepartmentService departmentService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENT')")
     ApiResponse<DepartmentResponse> createDepartment(@RequestBody @Valid DepartmentRequest request) {
         return ApiResponse.<DepartmentResponse>builder()
                 .result(departmentService.create(request))
@@ -48,6 +50,7 @@ public class DepartmentController {
     }
 
     @PutMapping("/{departmentId}")
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENT')")
     ApiResponse<DepartmentResponse> updateDepartment(@PathVariable String departmentId,
                                                      @RequestBody @Valid DepartmentRequest request) {
         return ApiResponse.<DepartmentResponse>builder()
@@ -56,6 +59,7 @@ public class DepartmentController {
     }
 
     @DeleteMapping("/{departmentId}")
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENT')")
     ApiResponse<Void> deleteDepartment(@PathVariable String departmentId) {
         departmentService.delete(departmentId);
         return ApiResponse.<Void>builder().build();

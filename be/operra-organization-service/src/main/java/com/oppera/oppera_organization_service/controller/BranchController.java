@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ public class BranchController {
     BranchService branchService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_BRANCH')")
     ApiResponse<BranchResponse> createBranch(@RequestParam String companyId,
                                              @RequestBody @Valid BranchRequest request) {
         return ApiResponse.<BranchResponse>builder()
@@ -67,6 +69,7 @@ public class BranchController {
     }
 
     @PutMapping(path = "/{branchId}", params = "companyId")
+    @PreAuthorize("hasAuthority('MANAGE_BRANCH')")
     ApiResponse<BranchResponse> updateBranch(@RequestParam String companyId,
                                              @PathVariable String branchId,
                                              @RequestBody @Valid BranchRequest request) {
@@ -76,6 +79,7 @@ public class BranchController {
     }
 
     @DeleteMapping(path = "/{branchId}", params = "companyId")
+    @PreAuthorize("hasAuthority('MANAGE_BRANCH')")
     ApiResponse<Void> deleteBranch(@RequestParam String companyId,
                                    @PathVariable String branchId) {
         branchService.delete(companyId, branchId);
@@ -83,6 +87,7 @@ public class BranchController {
     }
 
     @PutMapping("/{branchId}/status")
+    @PreAuthorize("hasAuthority('MANAGE_BRANCH')")
     ApiResponse<BranchResponse> updateBranchStatus(@PathVariable String branchId,
                                                    @RequestBody @Valid BranchStatusUpdateRequest request) {
         return ApiResponse.<BranchResponse>builder()
