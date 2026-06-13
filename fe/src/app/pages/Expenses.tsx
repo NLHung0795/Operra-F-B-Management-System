@@ -8,6 +8,12 @@ const MOCK_EXPENSES = [
 ];
 
 export function Expenses() {
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const expenses = useMock ? MOCK_EXPENSES : [];
+  const totalIncome = useMock ? 5500000 : 0;
+  const totalExpense = useMock ? 1250000 : 0;
+  const balance = totalIncome - totalExpense;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -35,7 +41,7 @@ export function Expenses() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Tổng Thu (Tháng này)</p>
-              <h4 className="text-2xl font-bold text-emerald-600">5.500.000đ</h4>
+              <h4 className="text-2xl font-bold text-emerald-600">{totalIncome.toLocaleString()}đ</h4>
             </div>
           </div>
         </div>
@@ -46,7 +52,7 @@ export function Expenses() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Tổng Chi (Tháng này)</p>
-              <h4 className="text-2xl font-bold text-red-600">1.250.000đ</h4>
+              <h4 className="text-2xl font-bold text-red-600">{totalExpense.toLocaleString()}đ</h4>
             </div>
           </div>
         </div>
@@ -57,7 +63,7 @@ export function Expenses() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Số dư hiện tại</p>
-              <h4 className="text-2xl font-bold text-gray-900">4.250.000đ</h4>
+              <h4 className="text-2xl font-bold text-gray-900">{balance.toLocaleString()}đ</h4>
             </div>
           </div>
         </div>
@@ -76,24 +82,32 @@ export function Expenses() {
             </tr>
           </thead>
           <tbody>
-            {MOCK_EXPENSES.map(exp => (
-              <tr key={exp.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className="px-6 py-4 font-semibold text-gray-900">{exp.date}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
-                    exp.type === 'Thu' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    {exp.type}
-                  </span>
+            {expenses.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                  Chưa có dữ liệu thu chi (Vui lòng bật Mock Data hoặc liên kết API)
                 </td>
-                <td className={`px-6 py-4 font-bold ${exp.type === 'Thu' ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {exp.type === 'Thu' ? '+' : '-'}{exp.amount.toLocaleString()}đ
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{exp.category}</td>
-                <td className="px-6 py-4 text-sm text-gray-500 italic">{exp.note}</td>
-                <td className="px-6 py-4 text-sm font-semibold text-gray-900 text-right">{exp.staff}</td>
               </tr>
-            ))}
+            ) : (
+              expenses.map(exp => (
+                <tr key={exp.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <td className="px-6 py-4 font-semibold text-gray-900">{exp.date}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
+                      exp.type === 'Thu' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {exp.type}
+                    </span>
+                  </td>
+                  <td className={`px-6 py-4 font-bold ${exp.type === 'Thu' ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {exp.type === 'Thu' ? '+' : '-'}{exp.amount.toLocaleString()}đ
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{exp.category}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 italic">{exp.note}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-gray-900 text-right">{exp.staff}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

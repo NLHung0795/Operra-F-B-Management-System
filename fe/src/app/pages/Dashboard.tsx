@@ -52,36 +52,41 @@ const revenueData = [
 
 export function Dashboard() {
   const { mode } = useOutletContext<{ mode: AppMode }>();
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
   const isHrm = mode === 'hrm';
 
   const statsHrm = [
-    { label: 'Tổng nhân sự', value: '154', change: '+12%', icon: Users, color: 'text-[#5D4037]', bg: 'bg-[#EFEBE9]' },
-    { label: 'Chấm công hôm nay', value: '142', change: '92%', icon: Clock, color: 'text-emerald-700', bg: 'bg-emerald-50' },
-    { label: 'Ca làm đang chạy', value: '24', change: 'Đủ người', icon: CalendarCheck, color: 'text-amber-700', bg: 'bg-amber-50' },
-    { label: 'Quỹ lương dự kiến', value: '452M', change: '+5%', icon: DollarSign, color: 'text-stone-700', bg: 'bg-stone-50' },
+    { label: 'Tổng nhân sự', value: useMock ? '154' : '0', change: useMock ? '+12%' : '0%', icon: Users, color: 'text-[#5D4037]', bg: 'bg-[#EFEBE9]' },
+    { label: 'Chấm công hôm nay', value: useMock ? '142' : '0', change: useMock ? '92%' : '0%', icon: Clock, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+    { label: 'Ca làm đang chạy', value: useMock ? '24' : '0', change: useMock ? 'Đủ người' : 'Không có', icon: CalendarCheck, color: 'text-amber-700', bg: 'bg-amber-50' },
+    { label: 'Quỹ lương dự kiến', value: useMock ? '452M' : '0đ', change: useMock ? '+5%' : '0%', icon: DollarSign, color: 'text-stone-700', bg: 'bg-stone-50' },
   ];
 
   const statsPos = [
-    { label: 'Doanh thu hôm nay', value: '18.5M', change: '+15%', icon: Banknote, color: 'text-[#5D4037]', bg: 'bg-[#EFEBE9]' },
-    { label: 'Số đơn hàng', value: '142', change: '+20', icon: ShoppingCart, color: 'text-emerald-700', bg: 'bg-emerald-50' },
-    { label: 'Giá trị trung bình', value: '130k', change: '+5k', icon: TrendingUp, color: 'text-amber-700', bg: 'bg-amber-50' },
-    { label: 'Lợi nhuận gộp', value: '6.2M', change: '+12%', icon: Target, color: 'text-stone-700', bg: 'bg-stone-50' },
+    { label: 'Doanh thu hôm nay', value: useMock ? '18.5M' : '0đ', change: useMock ? '+15%' : '0%', icon: Banknote, color: 'text-[#5D4037]', bg: 'bg-[#EFEBE9]' },
+    { label: 'Số đơn hàng', value: useMock ? '142' : '0', change: useMock ? '+20' : '0', icon: ShoppingCart, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+    { label: 'Giá trị trung bình', value: useMock ? '130k' : '0đ', change: useMock ? '+5k' : '0đ', icon: TrendingUp, color: 'text-amber-700', bg: 'bg-amber-50' },
+    { label: 'Lợi nhuận gộp', value: useMock ? '6.2M' : '0đ', change: useMock ? '+12%' : '0%', icon: Target, color: 'text-stone-700', bg: 'bg-stone-50' },
   ];
 
-  const activities = isHrm ? [
-    { id: 1, type: 'attendance', user: 'Nguyễn Văn An (Pha chế)', action: 'Check-in trễ 15 phút', time: '08:15 AM', status: 'warning' },
-    { id: 2, type: 'shift', user: 'Trần Thị Bình (Phục vụ)', action: 'Đổi ca thành công', time: '09:30 AM', status: 'success' },
-    { id: 3, type: 'leave', user: 'Lê Minh (Bếp chính)', action: 'Tạo đơn xin nghỉ phép', time: '11:20 AM', status: 'pending' },
-    { id: 4, type: 'payroll', user: 'Kế toán', action: 'Chốt bảng công tháng 4', time: '14:45 PM', status: 'info' },
-  ] : [
-    { id: 1, type: 'sale', user: 'Thu ngân 1', action: 'Thanh toán đơn #1045 (350k)', time: '18:20 PM', status: 'success' },
-    { id: 2, type: 'session', user: 'Quản lý', action: 'Mở ca Tối (Tiền két: 2M)', time: '17:30 PM', status: 'info' },
-    { id: 3, type: 'expense', user: 'Thu ngân 1', action: 'Chi mua đá viên (-50k)', time: '15:10 PM', status: 'warning' },
-    { id: 4, type: 'sale', user: 'Phục vụ bàn', action: 'Khách bàn 12 gọi thêm món', time: '14:05 PM', status: 'success' },
-  ];
+  const activitiesList = useMock 
+    ? (isHrm ? [
+        { id: 1, type: 'attendance', user: 'Nguyễn Văn An (Pha chế)', action: 'Check-in trễ 15 phút', time: '08:15 AM', status: 'warning' },
+        { id: 2, type: 'shift', user: 'Trần Thị Bình (Phục vụ)', action: 'Đổi ca thành công', time: '09:30 AM', status: 'success' },
+        { id: 3, type: 'leave', user: 'Lê Minh (Bếp chính)', action: 'Tạo đơn xin nghỉ phép', time: '11:20 AM', status: 'pending' },
+        { id: 4, type: 'payroll', user: 'Kế toán', action: 'Chốt bảng công tháng 4', time: '14:45 PM', status: 'info' },
+      ] : [
+        { id: 1, type: 'sale', user: 'Thu ngân 1', action: 'Thanh toán đơn #1045 (350k)', time: '18:20 PM', status: 'success' },
+        { id: 2, type: 'session', user: 'Quản lý', action: 'Mở ca Tối (Tiền két: 2M)', time: '17:30 PM', status: 'info' },
+        { id: 3, type: 'expense', user: 'Thu ngân 1', action: 'Chi mua đá viên (-50k)', time: '15:10 PM', status: 'warning' },
+        { id: 4, type: 'sale', user: 'Phục vụ bàn', action: 'Khách bàn 12 gọi thêm món', time: '14:05 PM', status: 'success' },
+      ])
+    : [];
 
   const stats = isHrm ? statsHrm : statsPos;
+  const attendanceChartData = useMock ? attendanceData : [];
+  const revenueChartData = useMock ? revenueData : [];
 
   return (
     <div className="space-y-6">
@@ -142,27 +147,33 @@ export function Dashboard() {
             </select>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              {isHrm ? (
-                <BarChart data={attendanceData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
-                  <Legend iconType="circle" />
-                  <Bar dataKey="attendance" name="Đúng giờ" fill="#5D4037" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="late" name="Đi muộn" fill="#D7CCC8" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              ) : (
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} formatter={(val) => `${val}M`} />
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
-                  <Line type="monotone" dataKey="amount" name="Doanh thu (Tr)" stroke="#5D4037" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#5D4037' }} activeDot={{ r: 6 }} />
-                </LineChart>
-              )}
-            </ResponsiveContainer>
+            {!useMock ? (
+              <div className="flex items-center justify-center h-full text-sm text-gray-400">
+                Chưa có dữ liệu biểu đồ (Vui lòng bật Mock Data)
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                {isHrm ? (
+                  <BarChart data={attendanceChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+                    <Legend iconType="circle" />
+                    <Bar dataKey="attendance" name="Đúng giờ" fill="#5D4037" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="late" name="Đi muộn" fill="#D7CCC8" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                ) : (
+                  <LineChart data={revenueChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} formatter={(val) => `${val}M`} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+                    <Line type="monotone" dataKey="amount" name="Doanh thu (Tr)" stroke="#5D4037" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#5D4037' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                )}
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -174,30 +185,34 @@ export function Dashboard() {
             <button className="text-[#007AFF] text-xs font-semibold hover:underline">Xem tất cả</button>
           </div>
           <div className="space-y-4">
-            {activities.map((activity) => (
-              <div key={activity.id} className="flex items-center justify-between p-3 border border-gray-50 rounded-xl hover:bg-gray-50 transition-all group">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    activity.status === 'warning' ? "bg-amber-50 text-amber-600" :
-                    activity.status === 'success' ? "bg-emerald-50 text-emerald-600" :
-                    activity.status === 'info' ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600"
-                  }`}>
-                    {activity.type === 'attendance' && <Clock className="w-5 h-5" />}
-                    {activity.type === 'sale' && <Banknote className="w-5 h-5" />}
-                    {activity.type === 'session' && <Briefcase className="w-5 h-5" />}
-                    {activity.type === 'expense' && <DollarSign className="w-5 h-5" />}
-                    {activity.type === 'leave' && <CalendarCheck className="w-5 h-5" />}
-                    {activity.type === 'shift' && <Users className="w-5 h-5" />}
-                    {activity.type === 'payroll' && <FileText className="w-5 h-5" />}
+            {activitiesList.length === 0 ? (
+              <p className="text-center text-sm text-gray-400 py-12">Không có hoạt động nào gần đây</p>
+            ) : (
+              activitiesList.map((activity) => (
+                <div key={activity.id} className="flex items-center justify-between p-3 border border-gray-50 rounded-xl hover:bg-gray-50 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      activity.status === 'warning' ? "bg-amber-50 text-amber-600" :
+                      activity.status === 'success' ? "bg-emerald-50 text-emerald-600" :
+                      activity.status === 'info' ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600"
+                    }`}>
+                      {activity.type === 'attendance' && <Clock className="w-5 h-5" />}
+                      {activity.type === 'sale' && <Banknote className="w-5 h-5" />}
+                      {activity.type === 'session' && <Briefcase className="w-5 h-5" />}
+                      {activity.type === 'expense' && <DollarSign className="w-5 h-5" />}
+                      {activity.type === 'leave' && <CalendarCheck className="w-5 h-5" />}
+                      {activity.type === 'shift' && <Users className="w-5 h-5" />}
+                      {activity.type === 'payroll' && <FileText className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#007AFF] transition-colors">{activity.action}</p>
+                      <p className="text-xs text-gray-500 mt-1">{activity.user} • {activity.time}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#007AFF] transition-colors">{activity.action}</p>
-                    <p className="text-xs text-gray-500 mt-1">{activity.user} • {activity.time}</p>
-                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

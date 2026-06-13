@@ -8,6 +8,9 @@ const MOCK_PRODUCTS = [
 ];
 
 export function Products() {
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const products = useMock ? MOCK_PRODUCTS : [];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -43,27 +46,35 @@ export function Products() {
             </tr>
           </thead>
           <tbody>
-            {MOCK_PRODUCTS.map(product => (
-              <tr key={product.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className="px-6 py-4 font-bold text-gray-900">{product.name}</td>
-                <td className="px-6 py-4">
-                  <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-bold">
-                    {product.category}
-                  </span>
-                </td>
-                <td className="px-6 py-4 font-semibold text-[#007AFF]">{product.price.toLocaleString()}đ</td>
-                <td className="px-6 py-4 text-center">
-                  <span className={`text-sm font-semibold ${product.stock === 'Hết hàng' ? 'text-red-500' : 'text-gray-600'}`}>
-                    {product.stock}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                  Chưa có dữ liệu thực đơn (Vui lòng bật Mock Data hoặc liên kết API)
                 </td>
               </tr>
-            ))}
+            ) : (
+              products.map(product => (
+                <tr key={product.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <td className="px-6 py-4 font-bold text-gray-900">{product.name}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-bold">
+                      {product.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-semibold text-[#007AFF]">{product.price.toLocaleString()}đ</td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`text-sm font-semibold ${product.stock === 'Hết hàng' ? 'text-red-500' : 'text-gray-600'}`}>
+                      {product.stock}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                      <MoreHorizontal className="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

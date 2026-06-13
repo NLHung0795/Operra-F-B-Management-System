@@ -23,6 +23,16 @@ const candidates = [
 ];
 
 export function Recruitment() {
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const candidateList = useMock ? candidates : [];
+
+  const stats = [
+    { label: 'Ứng viên mới', value: useMock ? '12' : '0', icon: UserPlus, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Phỏng vấn', value: useMock ? '5' : '0', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Đã tuyển', value: useMock ? '8' : '0', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Tin tuyển dụng', value: useMock ? '4' : '0', icon: Briefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -43,12 +53,7 @@ export function Recruitment() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Ứng viên mới', value: '12', icon: UserPlus, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Phỏng vấn', value: '5', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Đã tuyển', value: '8', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Tin tuyển dụng', value: '4', icon: Briefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
-        ].map((stat, idx) => (
+        {stats.map((stat, idx) => (
           <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
@@ -81,54 +86,60 @@ export function Recruitment() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {candidates.map((can) => (
-          <div key={can.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-200 transition-all group">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 font-bold text-lg">
-                  {can.name.split(' ').pop()?.[0]}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 group-hover:text-[#007AFF] transition-colors">{can.name}</h3>
-                  <p className="text-xs text-gray-500">{can.id} • {can.date}</p>
-                </div>
-              </div>
-              <button className="p-1 hover:bg-gray-100 rounded-lg text-gray-400">
-                <MoreVertical className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Briefcase className="w-4 h-4 text-[#007AFF]" />
-                <span className="font-medium">{can.position}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Mail className="w-4 h-4" />
-                <span>{can.email}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Phone className="w-4 h-4" />
-                <span>{can.phone}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                can.status === 'Hired' ? 'bg-emerald-50 text-emerald-700' : 
-                can.status === 'Interviewing' ? 'bg-blue-50 text-blue-700' : 
-                can.status === 'Rejected' ? 'bg-red-50 text-red-700' : 
-                'bg-gray-50 text-gray-700'
-              }`}>
-                {can.status === 'Hired' ? 'Đã tuyển' : 
-                 can.status === 'Interviewing' ? 'Đang phỏng vấn' : 
-                 can.status === 'Rejected' ? 'Từ chối' : 
-                 can.status === 'New' ? 'Mới ứng tuyển' : 'Chờ duyệt'}
-              </span>
-              <span className="text-xs font-medium text-gray-400">Nguồn: {can.source}</span>
-            </div>
+        {candidateList.length === 0 ? (
+          <div className="col-span-full bg-white p-12 rounded-2xl shadow-sm border border-gray-100 text-center text-sm text-gray-500">
+            Chưa có ứng viên nào (Vui lòng bật Mock Data)
           </div>
-        ))}
+        ) : (
+          candidateList.map((can) => (
+            <div key={can.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-200 transition-all group">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 font-bold text-lg">
+                    {can.name.split(' ').pop()?.[0]}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 group-hover:text-[#007AFF] transition-colors">{can.name}</h3>
+                    <p className="text-xs text-gray-500">{can.id} • {can.date}</p>
+                  </div>
+                </div>
+                <button className="p-1 hover:bg-gray-100 rounded-lg text-gray-400">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Briefcase className="w-4 h-4 text-[#007AFF]" />
+                  <span className="font-medium">{can.position}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Mail className="w-4 h-4" />
+                  <span>{can.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Phone className="w-4 h-4" />
+                  <span>{can.phone}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                  can.status === 'Hired' ? 'bg-emerald-50 text-emerald-700' : 
+                  can.status === 'Interviewing' ? 'bg-blue-50 text-blue-700' : 
+                  can.status === 'Rejected' ? 'bg-red-50 text-red-700' : 
+                  'bg-gray-50 text-gray-700'
+                }`}>
+                  {can.status === 'Hired' ? 'Đã tuyển' : 
+                   can.status === 'Interviewing' ? 'Đang phỏng vấn' : 
+                   can.status === 'Rejected' ? 'Từ chối' : 
+                   can.status === 'New' ? 'Mới ứng tuyển' : 'Chờ duyệt'}
+                </span>
+                <span className="text-xs font-medium text-gray-400">Nguồn: {can.source}</span>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

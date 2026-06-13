@@ -52,15 +52,16 @@ export function POSScreen() {
 
   const [activeTab, setActiveTab] = useState<'tables' | 'menu'>('tables');
   
-  const [areas] = useState(INITIAL_AREAS);
-  const [tables, setTables] = useState(INITIAL_TABLES);
-  const [activeArea, setActiveArea] = useState('a1');
+  const isMock = import.meta.env.VITE_USE_MOCK_DATA === "true";
+  const [areas] = useState(isMock ? INITIAL_AREAS : []);
+  const [tables, setTables] = useState(isMock ? INITIAL_TABLES : []);
+  const [activeArea, setActiveArea] = useState(isMock ? 'a1' : '');
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
-  const [orders, setOrders] = useState<Record<string, OrderItem[]>>({
+  const [orders, setOrders] = useState<Record<string, OrderItem[]>>(isMock ? {
     't1': [ { id: 1, name: 'Cà phê Đen', price: 25000, qty: 2, note: '' }, { id: 5, name: 'Bánh Sừng Trâu', price: 35000, qty: 1, note: '' } ],
     't4': [ { id: 3, name: 'Trà Đào Cam Sả', price: 45000, qty: 1, note: '' } ]
-  });
+  } : {});
 
   const [activeCategory, setActiveCategory] = useState('Tất cả');
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,10 +73,10 @@ export function POSScreen() {
 
   const [showChat, setShowChat] = useState(false);
   const [newMessage, setNewMessage] = useState('');
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState(isMock ? [
     { sender: 'Máy Pha Chế', text: 'Bàn 4 xong nước nhé', time: '10:30' },
     { sender: 'Thu Ngân', text: 'Ok, đã cho người mang ra', time: '10:32' },
-  ]);
+  ] : []);
 
   const addToCart = (item: any) => {
     if (!selectedTable) {
@@ -259,7 +260,9 @@ export function POSScreen() {
   );
 
   const renderMenu = () => {
-    const filteredItems = MENU_ITEMS.filter(item => {
+    const menuItemsList = isMock ? MENU_ITEMS : [];
+    const categoriesList = isMock ? CATEGORIES : ['Tất cả'];
+    const filteredItems = menuItemsList.filter(item => {
       const matchesCategory = activeCategory === 'Tất cả' || item.category === activeCategory;
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
@@ -280,7 +283,7 @@ export function POSScreen() {
           </div>
           
           <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-2 scrollbar-hide">
-            {CATEGORIES.map(cat => (
+            {categoriesList.map(cat => (
               <button 
                 key={cat}
                 onClick={() => setActiveCategory(cat)}

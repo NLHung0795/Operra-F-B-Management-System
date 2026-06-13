@@ -46,6 +46,9 @@ const COURSES = [
 ];
 
 export function Training() {
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const courseList = useMock ? COURSES : [];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -69,7 +72,7 @@ export function Training() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Tổng khóa học</p>
-              <h4 className="text-2xl font-bold text-gray-900">12</h4>
+              <h4 className="text-2xl font-bold text-gray-900">{useMock ? '12' : '0'}</h4>
             </div>
           </div>
         </div>
@@ -80,7 +83,7 @@ export function Training() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Đang học</p>
-              <h4 className="text-2xl font-bold text-gray-900">156</h4>
+              <h4 className="text-2xl font-bold text-gray-900">{useMock ? '156' : '0'}</h4>
             </div>
           </div>
         </div>
@@ -91,7 +94,7 @@ export function Training() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Tỷ lệ hoàn thành</p>
-              <h4 className="text-2xl font-bold text-gray-900">82%</h4>
+              <h4 className="text-2xl font-bold text-gray-900">{useMock ? '82%' : '0%'}</h4>
             </div>
           </div>
         </div>
@@ -102,7 +105,7 @@ export function Training() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Chứng chỉ đã cấp</p>
-              <h4 className="text-2xl font-bold text-gray-900">342</h4>
+              <h4 className="text-2xl font-bold text-gray-900">{useMock ? '342' : '0'}</h4>
             </div>
           </div>
         </div>
@@ -110,60 +113,66 @@ export function Training() {
 
       <h3 className="text-lg font-bold text-gray-900 mt-8 mb-4">Danh sách Khóa học</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {COURSES.map(course => (
-          <div key={course.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-all cursor-pointer">
-            <div className="relative h-48">
-              <img src={course.image} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full ${
-                course.status === 'active' ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
-                {course.status === 'active' ? 'Đang mở' : 'Bản nháp'}
-              </span>
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <span className="px-2 py-1 bg-white/20 backdrop-blur-md rounded-md text-xs font-medium border border-white/30">
-                  {course.category}
-                </span>
-                <h4 className="text-lg font-bold mt-2 leading-tight">{course.title}</h4>
-              </div>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  {course.duration}
-                </div>
-                <div className="flex items-center gap-1.5 font-semibold text-yellow-500">
-                  <Star className="w-4 h-4 fill-current" />
-                  {course.rating}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-gray-500">Tiến độ khóa học</span>
-                  <span className="text-[#007AFF]">{course.completed}/{course.enrolled} Đạt</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div 
-                    className="bg-[#007AFF] h-2 rounded-full transition-all duration-1000" 
-                    style={{ width: `${(course.completed / course.enrolled) * 100}%` }}
-                  />
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#007AFF] transition-colors">
-                  <PlayCircle className="w-4 h-4" />
-                  Xem nội dung
-                </button>
-                <button className="text-sm font-bold text-[#007AFF] hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
-                  Báo cáo
-                </button>
-              </div>
-            </div>
+        {courseList.length === 0 ? (
+          <div className="col-span-full bg-white p-12 rounded-2xl border border-gray-100 text-center text-sm text-gray-500">
+            Chưa có khóa học nào (Vui lòng bật Mock Data)
           </div>
-        ))}
+        ) : (
+          courseList.map(course => (
+            <div key={course.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-all cursor-pointer">
+              <div className="relative h-48">
+                <img src={course.image} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full ${
+                  course.status === 'active' ? 'bg-emerald-5050 text-white' : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {course.status === 'active' ? 'Đang mở' : 'Bản nháp'}
+                </span>
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <span className="px-2 py-1 bg-white/20 backdrop-blur-md rounded-md text-xs font-medium border border-white/30">
+                    {course.category}
+                  </span>
+                  <h4 className="text-lg font-bold mt-2 leading-tight">{course.title}</h4>
+                </div>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    {course.duration}
+                  </div>
+                  <div className="flex items-center gap-1.5 font-semibold text-yellow-500">
+                    <Star className="w-4 h-4 fill-current" />
+                    {course.rating}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-gray-500">Tiến độ khóa học</span>
+                    <span className="text-[#007AFF]">{course.completed}/{course.enrolled} Đạt</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div 
+                      className="bg-[#007AFF] h-2 rounded-full transition-all duration-1000" 
+                      style={{ width: `${(course.completed / course.enrolled) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#007AFF] transition-colors">
+                    <PlayCircle className="w-4 h-4" />
+                    Xem nội dung
+                  </button>
+                  <button className="text-sm font-bold text-[#007AFF] hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                    Báo cáo
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

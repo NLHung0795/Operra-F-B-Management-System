@@ -31,16 +31,33 @@ const PAST_SESSIONS = [
 ];
 
 export function CashSession() {
-  const [isSessionOpen, setIsSessionOpen] = useState(true);
+  const isMock = import.meta.env.VITE_USE_MOCK_DATA === "true";
+  const [isSessionOpen, setIsSessionOpen] = useState(isMock);
   const [showCloseModal, setShowCloseModal] = useState(false);
-  const [actualCash, setActualCash] = useState<number>(CURRENT_SESSION.expectedCash);
+
+  const currentSessionData = isMock ? CURRENT_SESSION : {
+    id: 'CS-EMPTY',
+    startTime: '--:--',
+    staff: 'Chưa giao ca',
+    role: 'N/A',
+    startingCash: 0,
+    ordersCount: 0,
+    cashSales: 0,
+    cardSales: 0,
+    expenses: 0,
+    expectedCash: 0
+  };
+
+  const [actualCash, setActualCash] = useState<number>(currentSessionData.expectedCash);
 
   const handleCloseSession = () => {
     setIsSessionOpen(false);
     setShowCloseModal(false);
   };
 
-  const diff = actualCash - CURRENT_SESSION.expectedCash;
+  const sessions = isMock ? PAST_SESSIONS : [];
+
+  const diff = actualCash - currentSessionData.expectedCash;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -72,14 +89,14 @@ export function CashSession() {
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Mã ca: {CURRENT_SESSION.id} • Thu ngân: <span className="font-semibold text-gray-700">{CURRENT_SESSION.staff}</span>
+                  Mã ca: {currentSessionData.id} • Thu ngân: <span className="font-semibold text-gray-700">{currentSessionData.staff}</span>
                 </p>
               </div>
             </div>
             <div className="text-right">
               <div className="flex items-center gap-1.5 text-gray-500 text-sm justify-end">
                 <Clock className="w-4 h-4" />
-                Mở lúc {CURRENT_SESSION.startTime}
+                Mở lúc {currentSessionData.startTime}
               </div>
               <button 
                 onClick={() => setShowCloseModal(true)}
@@ -100,19 +117,19 @@ export function CashSession() {
               <div className="bg-gray-50 p-4 rounded-xl space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tiền đầu ca</span>
-                  <span className="font-semibold text-gray-900">{CURRENT_SESSION.startingCash.toLocaleString()}đ</span>
+                  <span className="font-semibold text-gray-900">{currentSessionData.startingCash.toLocaleString()}đ</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Thu tiền mặt (+)</span>
-                  <span className="font-semibold text-emerald-600">+{CURRENT_SESSION.cashSales.toLocaleString()}đ</span>
+                  <span className="font-semibold text-emerald-600">+{currentSessionData.cashSales.toLocaleString()}đ</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Chi tiền mặt (-)</span>
-                  <span className="font-semibold text-red-600">-{CURRENT_SESSION.expenses.toLocaleString()}đ</span>
+                  <span className="font-semibold text-red-600">-{currentSessionData.expenses.toLocaleString()}đ</span>
                 </div>
                 <div className="pt-3 border-t border-gray-200 flex justify-between">
                   <span className="font-bold text-gray-900">Dự kiến trong két</span>
-                  <span className="font-bold text-blue-600 text-lg">{CURRENT_SESSION.expectedCash.toLocaleString()}đ</span>
+                  <span className="font-bold text-blue-600 text-lg">{currentSessionData.expectedCash.toLocaleString()}đ</span>
                 </div>
               </div>
             </div>
@@ -125,20 +142,20 @@ export function CashSession() {
               <div className="bg-gray-50 p-4 rounded-xl space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Số lượng đơn</span>
-                  <span className="font-semibold text-gray-900">{CURRENT_SESSION.ordersCount} đơn</span>
+                  <span className="font-semibold text-gray-900">{currentSessionData.ordersCount} đơn</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Doanh thu tiền mặt</span>
-                  <span className="font-semibold text-gray-900">{CURRENT_SESSION.cashSales.toLocaleString()}đ</span>
+                  <span className="font-semibold text-gray-900">{currentSessionData.cashSales.toLocaleString()}đ</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Doanh thu thẻ/ví</span>
-                  <span className="font-semibold text-gray-900">{CURRENT_SESSION.cardSales.toLocaleString()}đ</span>
+                  <span className="font-semibold text-gray-900">{currentSessionData.cardSales.toLocaleString()}đ</span>
                 </div>
                 <div className="pt-3 border-t border-gray-200 flex justify-between">
                   <span className="font-bold text-gray-900">TỔNG DOANH THU</span>
                   <span className="font-bold text-emerald-600 text-lg">
-                    {(CURRENT_SESSION.cashSales + CURRENT_SESSION.cardSales).toLocaleString()}đ
+                    {(currentSessionData.cashSales + currentSessionData.cardSales).toLocaleString()}đ
                   </span>
                 </div>
               </div>
@@ -202,7 +219,7 @@ export function CashSession() {
             </tr>
           </thead>
           <tbody>
-            {PAST_SESSIONS.map((s, i) => (
+            {sessions.map((s, i) => (
               <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50">
                 <td className="py-4 px-6 text-sm font-medium text-gray-900">{s.date}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">{s.shift}</td>
@@ -238,7 +255,7 @@ export function CashSession() {
             <div className="p-6 space-y-6">
               <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <span className="text-sm font-medium text-gray-500">Dự kiến trong két:</span>
-                <span className="text-xl font-bold text-blue-600">{CURRENT_SESSION.expectedCash.toLocaleString()}đ</span>
+                <span className="text-xl font-bold text-blue-600">{currentSessionData.expectedCash.toLocaleString()}đ</span>
               </div>
 
               <div>

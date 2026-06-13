@@ -36,13 +36,16 @@ const STAFF_PERFORMANCE = [
   { id: 4, name: 'Phạm Hoa', role: 'Thu ngân', score: 7.8, target: 8.5, status: 'Cần cố gắng' },
 ];
 
-const chartData = STAFF_PERFORMANCE.map(item => ({
-  name: item.name,
-  score: item.score,
-  target: item.target
-}));
-
 export function KPI() {
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const metrics = useMock ? KPI_METRICS : [];
+  const performances = useMock ? STAFF_PERFORMANCE : [];
+  const chartData = performances.map(item => ({
+    name: item.name,
+    score: item.score,
+    target: item.target
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -67,28 +70,34 @@ export function KPI() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {KPI_METRICS.map(metric => (
-          <div key={metric.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
-              <div className={`p-3 rounded-xl ${metric.bg} ${metric.color}`}>
-                <metric.icon className="w-6 h-6" />
-              </div>
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
-                metric.status === 'success' ? 'bg-emerald-50 text-emerald-600' : 
-                metric.status === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'
-              }`}>
-                Mục tiêu: {metric.target}
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">{metric.name}</p>
-              <div className="flex items-baseline gap-2 mt-1">
-                <h4 className="text-2xl font-bold text-gray-900">{metric.current}</h4>
-                <span className="text-xs font-semibold text-gray-400">hiện tại</span>
-              </div>
-            </div>
+        {metrics.length === 0 ? (
+          <div className="col-span-full bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center text-sm text-gray-500">
+            Chưa có chỉ số mục tiêu KPI (Vui lòng bật Mock Data)
           </div>
-        ))}
+        ) : (
+          metrics.map(metric => (
+            <div key={metric.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-3 rounded-xl ${metric.bg} ${metric.color}`}>
+                  <metric.icon className="w-6 h-6" />
+                </div>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                  metric.status === 'success' ? 'bg-emerald-50 text-emerald-600' : 
+                  metric.status === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'
+                }`}>
+                  Mục tiêu: {metric.target}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{metric.name}</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <h4 className="text-2xl font-bold text-gray-900">{metric.current}</h4>
+                  <span className="text-xs font-semibold text-gray-400">hiện tại</span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -101,24 +110,30 @@ export function KPI() {
             </button>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                />
-                <Legend iconType="circle" />
-                <Bar dataKey="score" name="Điểm thực tế" fill="#007AFF" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.score >= entry.target ? '#10B981' : entry.score >= entry.target - 1 ? '#F59E0B' : '#EF4444'} />
-                  ))}
-                </Bar>
-                <Bar dataKey="target" name="Mục tiêu" fill="#e2e8f0" radius={[4, 4, 0, 0]} maxBarSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
+            {chartData.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-sm text-gray-500">
+                Chưa có dữ liệu biểu đồ (Vui lòng bật Mock Data)
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                  <Tooltip 
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                  />
+                  <Legend iconType="circle" />
+                  <Bar dataKey="score" name="Điểm thực tế" fill="#007AFF" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.score >= entry.target ? '#10B981' : entry.score >= entry.target - 1 ? '#F59E0B' : '#EF4444'} />
+                    ))}
+                  </Bar>
+                  <Bar dataKey="target" name="Mục tiêu" fill="#e2e8f0" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -140,30 +155,34 @@ export function KPI() {
           </div>
 
           <div className="flex-1 overflow-y-auto pr-2 space-y-3">
-            {STAFF_PERFORMANCE.sort((a, b) => b.score - a.score).map((staff, idx) => (
-              <div key={staff.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-50 hover:bg-gray-50 transition-colors group">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ${
-                    idx === 0 ? 'bg-yellow-100 text-yellow-600 border border-yellow-200' :
-                    idx === 1 ? 'bg-gray-100 text-gray-600 border border-gray-200' :
-                    idx === 2 ? 'bg-orange-100 text-orange-600 border border-orange-200' :
-                    'bg-blue-50 text-blue-600'
-                  }`}>
-                    {idx + 1}
+            {performances.length === 0 ? (
+              <p className="text-center text-sm text-gray-500 py-8">Chưa có xếp hạng nhân sự</p>
+            ) : (
+              performances.sort((a, b) => b.score - a.score).map((staff, idx) => (
+                <div key={staff.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-50 hover:bg-gray-50 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ${
+                      idx === 0 ? 'bg-yellow-100 text-yellow-600 border border-yellow-200' :
+                      idx === 1 ? 'bg-gray-100 text-gray-600 border border-gray-200' :
+                      idx === 2 ? 'bg-orange-100 text-orange-600 border border-orange-200' :
+                      'bg-blue-50 text-blue-600'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900 group-hover:text-[#007AFF] transition-colors">{staff.name}</p>
+                      <p className="text-xs text-gray-500 font-medium">{staff.role}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900 group-hover:text-[#007AFF] transition-colors">{staff.name}</p>
-                    <p className="text-xs text-gray-500 font-medium">{staff.role}</p>
+                  <div className="text-right">
+                    <p className={`text-sm font-bold ${
+                      staff.score >= staff.target ? 'text-emerald-600' : 'text-amber-600'
+                    }`}>{staff.score}</p>
+                    <p className="text-[10px] text-gray-400 font-semibold">{staff.status}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-sm font-bold ${
-                    staff.score >= staff.target ? 'text-emerald-600' : 'text-amber-600'
-                  }`}>{staff.score}</p>
-                  <p className="text-[10px] text-gray-400 font-semibold">{staff.status}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           
           <button className="mt-4 w-full py-2.5 bg-gray-50 text-[#007AFF] text-sm font-bold rounded-xl hover:bg-blue-50 transition-all border border-gray-100">

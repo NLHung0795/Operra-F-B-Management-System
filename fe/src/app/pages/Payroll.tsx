@@ -19,6 +19,16 @@ const payrollData = [
 ];
 
 export function Payroll() {
+  const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const payrolls = useMock ? payrollData : [];
+
+  const stats = [
+    { label: 'Tổng quỹ lương', value: useMock ? '452.5M' : '0đ', icon: DollarSign, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Lương thực lĩnh', value: useMock ? '415.8M' : '0đ', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Thuế thu nhập', value: useMock ? '25.4M' : '0đ', icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Giờ tăng ca', value: useMock ? '342h' : '0h', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50' },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -38,12 +48,7 @@ export function Payroll() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Tổng quỹ lương', value: '452.5M', icon: DollarSign, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Lương thực lĩnh', value: '415.8M', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Thuế thu nhập', value: '25.4M', icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Giờ tăng ca', value: '342h', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50' },
-        ].map((stat, idx) => (
+        {stats.map((stat, idx) => (
           <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
@@ -82,33 +87,41 @@ export function Payroll() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {payrollData.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-gray-900">{row.name}</span>
-                      <span className="text-xs text-gray-500">{row.role}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{row.basicSalary.toLocaleString()}đ</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{row.allowance.toLocaleString()}đ</td>
-                  <td className="px-6 py-4 text-sm text-emerald-600">+{row.bonus.toLocaleString()}đ</td>
-                  <td className="px-6 py-4 text-sm text-red-500">-{row.tax.toLocaleString()}đ</td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900">{row.total.toLocaleString()}đ</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                      row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700' : 
-                      row.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 
-                      'bg-blue-50 text-blue-700'
-                    }`}>
-                      {row.status === 'Paid' && <CheckCircle2 className="w-3.5 h-3.5" />}
-                      {row.status === 'Pending' && <AlertCircle className="w-3.5 h-3.5" />}
-                      {row.status === 'Processing' && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
-                      {row.status === 'Paid' ? 'Đã chi trả' : row.status === 'Pending' ? 'Chờ duyệt' : 'Đang xử lý'}
-                    </span>
+              {payrolls.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                    Chưa có dữ liệu bảng lương (Vui lòng bật Mock Data hoặc liên kết API)
                   </td>
                 </tr>
-              ))}
+              ) : (
+                payrolls.map((row) => (
+                  <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-900">{row.name}</span>
+                        <span className="text-xs text-gray-500">{row.role}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{row.basicSalary.toLocaleString()}đ</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{row.allowance.toLocaleString()}đ</td>
+                    <td className="px-6 py-4 text-sm text-emerald-600">+{row.bonus.toLocaleString()}đ</td>
+                    <td className="px-6 py-4 text-sm text-red-500">-{row.tax.toLocaleString()}đ</td>
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900">{row.total.toLocaleString()}đ</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                        row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700' : 
+                        row.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 
+                        'bg-blue-50 text-blue-700'
+                      }`}>
+                        {row.status === 'Paid' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                        {row.status === 'Pending' && <AlertCircle className="w-3.5 h-3.5" />}
+                        {row.status === 'Processing' && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
+                        {row.status === 'Paid' ? 'Đã chi trả' : row.status === 'Pending' ? 'Chờ duyệt' : 'Đang xử lý'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
