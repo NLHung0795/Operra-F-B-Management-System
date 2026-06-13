@@ -1,5 +1,7 @@
 package com.operra.scheduling_and_attendance_service.entity;
 
+import com.operra.scheduling_and_attendance_service.attendance.method.AttendanceMethodContext;
+import com.operra.scheduling_and_attendance_service.enums.AttendanceMethodType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -44,7 +46,7 @@ public class Attendance {
     @Column(name = "check_out_time")
     Instant checkOutTime;
 
-    String method;
+    AttendanceMethodType method;
 
     String location;
 
