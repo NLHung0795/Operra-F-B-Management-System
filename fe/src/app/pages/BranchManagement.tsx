@@ -42,6 +42,7 @@ export function BranchManagement() {
   const [formAddress, setFormAddress] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [formStatus, setFormStatus] = useState("ACTIVE");
+  const [formAllowedIps, setFormAllowedIps] = useState("");
 
   // Load companies
   useEffect(() => {
@@ -95,11 +96,13 @@ export function BranchManagement() {
       setFormAddress(branch.address ?? "");
       setFormPhone(branch.phone ?? "");
       setFormStatus(branch.status ?? "ACTIVE");
+      setFormAllowedIps((branch.allowedIpAddresses ?? []).join("\n"));
     } else {
       setFormName("");
       setFormAddress("");
       setFormPhone("");
       setFormStatus("ACTIVE");
+      setFormAllowedIps("");
       if (companies.length > 0) {
         setFormCompanyId(companies[0].id);
       }
@@ -123,6 +126,10 @@ export function BranchManagement() {
       address: formAddress.trim() || undefined,
       phone: formPhone.trim() || undefined,
       status: formStatus,
+      allowedIpAddresses: formAllowedIps
+        .split(/[\n,]/)
+        .map((ip) => ip.trim())
+        .filter(Boolean),
     };
 
     try {
@@ -293,6 +300,12 @@ export function BranchManagement() {
                           <Phone className="w-3.5 h-3.5 text-gray-400" />
                           {branch.phone ?? "Chưa có SĐT"}
                         </div>
+                        <div className="text-xs text-gray-500">
+                          IP chấm công:{" "}
+                          {branch.allowedIpAddresses && branch.allowedIpAddresses.length > 0
+                            ? branch.allowedIpAddresses.join(", ")
+                            : "Chưa cấu hình"}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -423,6 +436,21 @@ export function BranchManagement() {
                   <option value="MAINTENANCE">MAINTENANCE</option>
                 </select>
               </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                IP chấm công được phép
+              </label>
+              <textarea
+                value={formAllowedIps}
+                onChange={(e) => setFormAllowedIps(e.target.value)}
+                placeholder={"Nhập mỗi IP một dòng hoặc phân tách bằng dấu phẩy\nVí dụ: 113.161.10.20\n127.0.0.1"}
+                rows={4}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5D4037]/20 transition-all resize-y"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Scheduling service sẽ dùng danh sách này để kiểm tra IP khi chấm công bằng NETWORK.
+              </p>
             </div>
             <DialogFooter className="flex justify-end gap-2 pt-4">
               <button
