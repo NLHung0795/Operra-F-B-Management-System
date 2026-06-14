@@ -51,6 +51,7 @@ public class ShiftAssignmentController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('VIEW_SHIFT_ASSIGNMENT')")
     ApiResponse<List<ShiftAssignmentResponse>> getShiftAssignments(
             @RequestParam String employeeId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
@@ -62,6 +63,7 @@ public class ShiftAssignmentController {
     }
 
     @GetMapping("/branch/{branchId}/date/{date}")
+    @PreAuthorize("hasAuthority('VIEW_SHIFT_ASSIGNMENT')")
     ApiResponse<List<ShiftAssignmentResponse>> getShiftAssignmentsByBranchAndDate(
             @PathVariable String branchId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date

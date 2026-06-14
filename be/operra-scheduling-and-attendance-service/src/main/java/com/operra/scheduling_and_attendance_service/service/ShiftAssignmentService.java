@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +41,14 @@ public class ShiftAssignmentService {
         var employeeResponse = employeeClient.getEmployee(request.getEmployeeId());
         if (Objects.isNull(employeeResponse) || Objects.isNull(employeeResponse.getResult())) {
             throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
+        }
+
+        if(!employeeResponse.getResult().getStatus().equals("ACTIVE")){
+            throw new AppException(ErrorCode.EMPLOYEE_NOT_ACTIVE);
+        }
+
+        if (request.getDate().isBefore(LocalDate.now())) {
+            throw new AppException(ErrorCode.INVALID_SHIFT_DATE);
         }
 
         var assignerResponse = employeeClient.getEmployee(request.getAssignedBy());
@@ -67,6 +76,7 @@ public class ShiftAssignmentService {
         return response;
     }
 
+    @Transactional
     public List<ShiftAssignmentResponse> createBulk(BulkShiftAssignmentRequest request) {
         return request.getAssignments().stream()
                 .map(item -> ShiftAssignmentRequest.builder()
@@ -115,7 +125,7 @@ public class ShiftAssignmentService {
 
         validateDuplicateShift(workAssignment, request.getDate(), request.getEmployeeId(), shiftAssignmentId);
 
-        shiftAssignment = shiftAssignmentMapper.updateShiftAssignment(request);
+        shiftAssignmentMapper.updateShiftAssignment(shiftAssignment, request);
         shiftAssignment.setWorkAssignment(workAssignment);
         shiftAssignment = shiftAssignmentRepository.save(shiftAssignment);
 
