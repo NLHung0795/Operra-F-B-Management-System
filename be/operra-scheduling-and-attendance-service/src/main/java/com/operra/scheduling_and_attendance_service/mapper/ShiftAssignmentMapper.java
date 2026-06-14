@@ -15,7 +15,7 @@ public interface ShiftAssignmentMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "workAssignment", ignore = true)
-    ShiftAssignment updateShiftAssignment(ShiftAssignmentUpdateRequest request);
+    void updateShiftAssignment(@MappingTarget ShiftAssignment shiftAssignment, ShiftAssignmentUpdateRequest request);
 
     @Mapping(target = "employee", ignore = true)
     @Mapping(target = "assignedBy", ignore = true)
