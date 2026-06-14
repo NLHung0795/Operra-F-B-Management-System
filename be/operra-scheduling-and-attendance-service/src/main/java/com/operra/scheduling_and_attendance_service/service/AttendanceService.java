@@ -95,9 +95,9 @@ public class AttendanceService {
         var checkInTime = attendance.getCheckInTime().atZone(ZoneId.systemDefault()).toLocalTime();
 
         if (checkInTime.isAfter(workAssignment.getStartTime())) {
-            attendance.setStatus(AttendanceStatus.CHECK_IN_LATE);
+            attendance.setCheckInStatus(AttendanceStatus.CHECK_IN_LATE);
         } else {
-            attendance.setStatus(AttendanceStatus.CHECK_IN_ON_TIME);
+            attendance.setCheckInStatus(AttendanceStatus.CHECK_IN_ON_TIME);
         }
 
 
@@ -141,9 +141,9 @@ public class AttendanceService {
         var checkOutTime = attendance.getCheckOutTime().atZone(ZoneId.systemDefault()).toLocalTime();
 
         if (checkOutTime.isBefore(workAssignment.getEndTime())) {
-            attendance.setStatus(AttendanceStatus.CHECK_OUT_SOON);
+            attendance.setCheckOutStatus(AttendanceStatus.CHECK_OUT_SOON);
         } else {
-            attendance.setStatus(AttendanceStatus.CHECK_OUT_ON_TIME);
+            attendance.setCheckOutStatus(AttendanceStatus.CHECK_OUT_ON_TIME);
         }
 
         return toResponse(attendanceRepository.save(attendance));
@@ -182,7 +182,12 @@ public class AttendanceService {
         var attendance = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AppException(ErrorCode.ATTENDANCE_NOT_FOUND));
 
-        attendance.setStatus(request.getStatus());
+        if (request.getCheckInStatus() != null) {
+            attendance.setCheckInStatus(request.getCheckInStatus());
+        }
+        if (request.getCheckOutStatus() != null) {
+            attendance.setCheckOutStatus(request.getCheckOutStatus());
+        }
         return toResponse(attendanceRepository.save(attendance));
     }
 

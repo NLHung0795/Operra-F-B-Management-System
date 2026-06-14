@@ -20,6 +20,7 @@ public class AttendanceResponse {
     Instant checkOutTime;
     String method;
     String location;
-    AttendanceStatus status;
+    AttendanceStatus checkInStatus;
+    AttendanceStatus checkOutStatus;
     Long workedMinutes;
 }

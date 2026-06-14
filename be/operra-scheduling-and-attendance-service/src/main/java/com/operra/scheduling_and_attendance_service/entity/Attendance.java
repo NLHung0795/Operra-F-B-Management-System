@@ -54,5 +54,10 @@ public class Attendance {
     String location;
 
     @Enumerated(EnumType.STRING)
-    AttendanceStatus status;
+    @Column(name = "check_in_status")
+    AttendanceStatus checkInStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "check_out_status")
+    AttendanceStatus checkOutStatus;
 }

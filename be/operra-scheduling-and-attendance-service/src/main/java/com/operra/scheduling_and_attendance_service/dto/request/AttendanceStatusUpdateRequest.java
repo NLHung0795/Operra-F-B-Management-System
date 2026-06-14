@@ -1,7 +1,6 @@
 package com.operra.scheduling_and_attendance_service.dto.request;
 
 import com.operra.scheduling_and_attendance_service.enums.AttendanceStatus;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +14,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AttendanceStatusUpdateRequest {
-    @NotNull
-    AttendanceStatus status;
+    AttendanceStatus checkInStatus;
+    AttendanceStatus checkOutStatus;
 }

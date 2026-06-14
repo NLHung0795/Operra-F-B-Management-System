@@ -10,7 +10,8 @@ import org.mapstruct.Mapping;
 public interface AttendanceMapper {
     @Mapping(target = "shiftAssignment", ignore = true)
     @Mapping(target = "method", ignore = true)
-    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "checkInStatus", ignore = true)
+    @Mapping(target = "checkOutStatus", ignore = true)
     Attendance toAttendance(AttendanceRequest request);
 
     @Mapping(target = "shiftAssignmentId", source = "shiftAssignment.id")
