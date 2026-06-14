@@ -2,7 +2,7 @@ package com.oppera.oppera_organization_service.controller;
 
 import com.oppera.oppera_organization_service.dto.request.BranchRequest;
 import com.oppera.oppera_organization_service.dto.request.BranchStatusUpdateRequest;
-import com.oppera.oppera_organization_service.dto.response.BranchResponse;
+import com.operra.operra_common.dto.response.BranchResponse;
 import com.oppera.oppera_organization_service.service.BranchService;
 import com.operra.operra_common.dto.ApiResponse;
 import jakarta.validation.Valid;
