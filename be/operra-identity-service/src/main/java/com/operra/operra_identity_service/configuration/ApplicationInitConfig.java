@@ -62,6 +62,7 @@ public class ApplicationInitConfig {
 
                 // Scheduling
                 {"MANAGE_WORK_ASSIGNMENT", "Manage work assignment templates"},
+                {"VIEW_SHIFT_ASSIGNMENT", "View shift assignments"},
                 {"MANAGE_SHIFT_ASSIGNMENT", "Assign and manage shifts for employees"},
                 {"VIEW_ATTENDANCE", "View branch attendance reports"},
                 {"MANAGE_ATTENDANCE", "Manually adjust attendance records"},
@@ -107,7 +108,7 @@ public class ApplicationInitConfig {
             // MANAGER role
             Set<String> managerPermNames = Set.of(
                 "VIEW_EMPLOYEE", "MANAGE_EMPLOYEE",
-                "MANAGE_WORK_ASSIGNMENT", "MANAGE_SHIFT_ASSIGNMENT",
+                "MANAGE_WORK_ASSIGNMENT", "VIEW_SHIFT_ASSIGNMENT", "MANAGE_SHIFT_ASSIGNMENT",
                 "VIEW_ATTENDANCE", "MANAGE_ATTENDANCE", "ATTENDANCE_CHECK",
                 "SUBMIT_LEAVE_REQUEST", "APPROVE_LEAVE_REQUEST", "VIEW_LEAVE_REQUEST",
                 "OPEN_CLOSE_CASH_SESSION", "VIEW_CASH_SESSION",

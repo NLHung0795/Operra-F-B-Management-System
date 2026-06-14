@@ -13,11 +13,14 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role {
     @Id
+    @EqualsAndHashCode.Include
     String name;
     String description;
     @ManyToMany
+    @ToString.Exclude
     Set<Permission> permissions;
 }
