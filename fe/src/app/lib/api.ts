@@ -30,6 +30,7 @@ export type BranchResponse = {
   address?: string;
   phone?: string;
   status?: string;
+  allowedIpAddresses?: string[];
 };
 
 export type BranchRequest = {
@@ -37,6 +38,7 @@ export type BranchRequest = {
   address?: string;
   phone?: string;
   status?: string;
+  allowedIpAddresses?: string[];
 };
 
 export type DepartmentResponse = {
@@ -411,11 +413,6 @@ export const organizationApi = {
   getEmployeesByBranch: (branchId: string) => request<EmployeeResponse[]>(organizationBaseUrl, `/employees/branch/${branchId}`),
   getEmployeesByDepartment: (departmentId: string) =>
     request<EmployeeResponse[]>(organizationBaseUrl, `/employees/department/${departmentId}`),
-  getInternalEmployee: (employeeId: string) => request<EmployeeResponse>(organizationBaseUrl, `/internal/employees/${employeeId}`),
-  countInternalEmployeesByBranch: (branchId: string) =>
-    request<number>(organizationBaseUrl, `/internal/employees/branch/${branchId}/count`),
-  getInternalEmployeesByBranch: (branchId: string) =>
-    request<EmployeeResponse[]>(organizationBaseUrl, `/internal/employees/branch/${branchId}`),
 };
 
 export const schedulingApi = {
