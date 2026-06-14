@@ -14,7 +14,7 @@ public class EmployeeResponse {
     String id;
     String departmentName;
     String positionName;
-    String branchName;
+    String branchId;
     String fullname;
     LocalDate dob;
     String phoneNumber;

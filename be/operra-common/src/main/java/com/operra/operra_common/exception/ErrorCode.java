@@ -1,9 +1,10 @@
 package com.operra.operra_common.exception;
 
-import lombok.Data;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
+@Getter
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "UNCATEGORIZE ERROR", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHORIZED(1002,"do not have permission", HttpStatus.FORBIDDEN),
@@ -22,10 +23,15 @@ public enum ErrorCode {
     SHIFT_ASSIGNMENT_EXISTED(3002, "shift assignment existed", HttpStatus.BAD_REQUEST),
     SHIFT_ASSIGNMENT_NOT_FOUND(3003, "shift assignment not found", HttpStatus.NOT_FOUND),
     WORK_ASSIGNMENT_IN_USE(3004, "work assignment in use", HttpStatus.BAD_REQUEST),
+    INVALID_WORK_ASSIGNMENT_TIME(3005, "start time must be before end time", HttpStatus.BAD_REQUEST),
+    INVALID_SHIFT_DATE(3006, "shift date must not be in the past", HttpStatus.BAD_REQUEST),
     INVALID_ATTENDANCE_METHOD(4001, "invalid attendance method", HttpStatus.BAD_REQUEST),
     INVALID_ATTENDANCE_LOCATION(4002, "invalid attendance location", HttpStatus.BAD_REQUEST),
     INVALID_ATTENDANCE_QR(4003, "invalid attendance qr", HttpStatus.BAD_REQUEST),
-    ;
+    INVALID_ATTENDANCE_EMPLOYEE(4004, "invalid attendance employee", HttpStatus.BAD_REQUEST),
+    ATTENDANCE_NOT_FOUND(4005, "attendance not found", HttpStatus.NOT_FOUND),
+    ATTENDANCE_ALREADY_CHECKED_IN(4006, "attendance already checked in", HttpStatus.BAD_REQUEST),
+    SHIFT_ALREADY_COMPLETED(4007,"shift already completed" , HttpStatus.BAD_REQUEST);
 
     private int code;
     private String message;
