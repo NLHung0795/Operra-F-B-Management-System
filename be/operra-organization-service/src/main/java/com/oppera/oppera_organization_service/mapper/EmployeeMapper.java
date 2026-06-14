@@ -18,7 +18,7 @@ public interface EmployeeMapper {
     @Mapping(target = "position", ignore = true)
     void updateEmployee(@MappingTarget Employee employee, EmployeeUpdateRequest request);
 
-    @Mapping(target = "branchName", source = "branch.name")
+    @Mapping(target = "branchId", source = "branch.id")
     @Mapping(target = "departmentName", source = "department.name")
     @Mapping(target = "positionName", source = "position.name")
     EmployeeResponse toEmployeeResponse(Employee employee);
