@@ -8,7 +8,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-only
+      ddl-auto: update
 server:
   port: 8082
   servlet:
@@ -17,4 +17,6 @@ server:
 app:
   services:
     organization: http://localhost:8081/organization
+  attendance:
+    type: NETWORK
 

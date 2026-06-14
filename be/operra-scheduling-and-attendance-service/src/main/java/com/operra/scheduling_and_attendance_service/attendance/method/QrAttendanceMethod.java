@@ -14,10 +14,11 @@ public class QrAttendanceMethod implements AttendanceMethod {
     }
 
     @Override
-    public void validate(AttendanceMethodContext context) {
+    public boolean validate(AttendanceMethodContext context) {
         if (!StringUtils.hasText(context.getQrCode())) {
             throw new AppException(ErrorCode.INVALID_ATTENDANCE_QR);
         }
+        return true;
     }
 
     @Override

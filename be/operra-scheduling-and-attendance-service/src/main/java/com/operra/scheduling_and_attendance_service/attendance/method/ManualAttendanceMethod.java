@@ -11,7 +11,8 @@ public class ManualAttendanceMethod implements AttendanceMethod {
     }
 
     @Override
-    public void validate(AttendanceMethodContext context) {
+    public boolean validate(AttendanceMethodContext context) {
+        return true;
     }
 
     @Override

@@ -15,10 +15,11 @@ public class GpsAttendanceMethod implements AttendanceMethod {
     }
 
     @Override
-    public void validate(AttendanceMethodContext context) {
+    public boolean validate(AttendanceMethodContext context) {
         if (Objects.isNull(context.getLatitude()) || Objects.isNull(context.getLongitude())) {
             throw new AppException(ErrorCode.INVALID_ATTENDANCE_LOCATION);
         }
+        return true;
     }
 
     @Override

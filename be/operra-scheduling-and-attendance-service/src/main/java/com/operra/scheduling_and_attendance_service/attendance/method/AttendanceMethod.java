@@ -5,7 +5,7 @@ import com.operra.scheduling_and_attendance_service.enums.AttendanceMethodType;
 public interface AttendanceMethod {
     AttendanceMethodType type();
 
-    void validate(AttendanceMethodContext context);
+    boolean validate(AttendanceMethodContext context);
 
     String resolveLocation(AttendanceMethodContext context);
 }
