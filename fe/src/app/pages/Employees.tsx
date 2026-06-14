@@ -63,7 +63,7 @@ export function Employees() {
   const [formPositionName, setFormPositionName] = useState("");
   const [formUsername, setFormUsername] = useState("");
   const [formEmail, setFormEmail] = useState("");
-  const [formRoles, setFormRoles] = useState<string[]>(["USER"]);
+  const [formRoles, setFormRoles] = useState<string[]>(["EMPLOYEE"]);
 
   // Fetch metadata on mount
   useEffect(() => {
@@ -138,7 +138,7 @@ export function Employees() {
       setFormStatus("ACTIVE");
       setFormUsername("");
       setFormEmail("");
-      setFormRoles(["USER"]);
+      setFormRoles(["EMPLOYEE"]);
       if (branches[0]) setFormBranchId(branches[0].id);
       if (departments[0]) setFormDepartmentName(departments[0].name);
       if (positions[0]) setFormPositionName(positions[0].name);
