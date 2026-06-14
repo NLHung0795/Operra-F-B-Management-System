@@ -1,15 +1,8 @@
 package com.operra.scheduling_and_attendance_service.dto.request;
 
-import com.operra.scheduling_and_attendance_service.entity.ShiftAssignment;
-import com.operra.scheduling_and_attendance_service.enums.AttendanceMethodType;
-import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.Instant;
 
 @Data
 @Builder
@@ -17,11 +10,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AttendanceRequest {
+    @NotBlank
     String employeeId;
+    @NotBlank
     String shiftAssignmentId;
-    Instant checkInTime;
-    Instant checkOutTime;
     String method;
     String location;
-    String status;
 }
