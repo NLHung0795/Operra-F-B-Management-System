@@ -1,7 +1,7 @@
 package com.operra.scheduling_and_attendance_service.entity;
 
-import com.operra.scheduling_and_attendance_service.attendance.method.AttendanceMethodContext;
 import com.operra.scheduling_and_attendance_service.enums.AttendanceMethodType;
+import com.operra.scheduling_and_attendance_service.enums.AttendanceStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,6 +11,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,9 +48,11 @@ public class Attendance {
     @Column(name = "check_out_time")
     Instant checkOutTime;
 
+    @Enumerated(EnumType.STRING)
     AttendanceMethodType method;
 
     String location;
 
-    String status;
+    @Enumerated(EnumType.STRING)
+    AttendanceStatus status;
 }
