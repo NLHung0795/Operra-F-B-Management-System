@@ -61,7 +61,7 @@ export function Settings() {
   // 4. Permission
   const [permForm, setPermForm] = useState({ name: "", description: "" });
   // 5. Account Creation
-  const [accForm, setAccForm] = useState({ username: "", email: "", password: "", roles: ["USER"] });
+  const [accForm, setAccForm] = useState({ username: "", email: "", password: "", roles: ["EMPLOYEE"] });
 
   // Delete confirms
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -115,7 +115,7 @@ export function Settings() {
     } else if (activeTab === "perm") {
       setPermForm({ name: "", description: "" });
     } else if (activeTab === "account") {
-      setAccForm({ username: "", email: "", password: "", roles: ["USER"] });
+      setAccForm({ username: "", email: "", password: "", roles: ["EMPLOYEE"] });
       setShowPassword(false);
     }
     setIsModalOpen(true);
