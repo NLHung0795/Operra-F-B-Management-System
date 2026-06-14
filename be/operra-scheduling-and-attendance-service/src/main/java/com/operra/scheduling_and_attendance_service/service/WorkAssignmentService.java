@@ -24,6 +24,7 @@ public class WorkAssignmentService {
     ShiftAssignmentRepository shiftAssignmentRepository;
 
     public WorkAssignmentResponse create(WorkAssignmentRequest request) {
+        validateTimeRange(request);
         var workAssignment = workAssignmentMapper.toWorkAssignment(request);
         workAssignment = workAssignmentRepository.save(workAssignment);
         return workAssignmentMapper.toWorkAssignmentResponse(workAssignment);
@@ -44,6 +45,7 @@ public class WorkAssignmentService {
     }
 
     public WorkAssignmentResponse update(String workAssignmentId, WorkAssignmentRequest request) {
+        validateTimeRange(request);
         var workAssignment = findEntityById(workAssignmentId);
         workAssignmentMapper.updateWorkAssignment(workAssignment, request);
         workAssignment = workAssignmentRepository.save(workAssignment);
@@ -61,5 +63,12 @@ public class WorkAssignmentService {
     public WorkAssignment findEntityById(String workAssignmentId) {
         return workAssignmentRepository.findById(workAssignmentId)
                 .orElseThrow(() -> new AppException(ErrorCode.WORK_ASSIGNMENT_NOT_FOUND));
+    }
+
+    private void validateTimeRange(WorkAssignmentRequest request) {
+        if (request.getStartTime() != null && request.getEndTime() != null
+                && !request.getStartTime().isBefore(request.getEndTime())) {
+            throw new AppException(ErrorCode.INVALID_WORK_ASSIGNMENT_TIME);
+        }
     }
 }
