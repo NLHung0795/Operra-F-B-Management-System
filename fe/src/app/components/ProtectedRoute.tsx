@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
  * Nếu chưa có token hoặc token hết hiệu lực, redirect đến login page
  */
 export function ProtectedRoute({ element }: ProtectedRouteProps) {
-  const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+  const token = localStorage.getItem('accessToken');
   const [isValid, setIsValid] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -22,18 +22,16 @@ export function ProtectedRoute({ element }: ProtectedRouteProps) {
       }
 
       try {
-        const result = await identityApi.introspect({ token });
+        const result = await identityApi.introspect(token);
         if (result.valid) {
           setIsValid(true);
         } else {
           // Token không còn hiệu lực
-          localStorage.removeItem('token');
           localStorage.removeItem('accessToken');
           setIsValid(false);
         }
       } catch (err) {
         console.error('Token verification failed:', err);
-        localStorage.removeItem('token');
         localStorage.removeItem('accessToken');
         setIsValid(false);
       }
@@ -66,7 +64,7 @@ export function ProtectedRoute({ element }: ProtectedRouteProps) {
  * Nếu đã có token hợp lệ, redirect đến dashboard
  */
 export function PublicRoute({ element }: ProtectedRouteProps) {
-  const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+  const token = localStorage.getItem('accessToken');
   const [isValid, setIsValid] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -77,18 +75,16 @@ export function PublicRoute({ element }: ProtectedRouteProps) {
       }
 
       try {
-        const result = await identityApi.introspect({ token });
+        const result = await identityApi.introspect(token);
         if (result.valid) {
           setIsValid(true);
         } else {
           // Token không còn hiệu lực
-          localStorage.removeItem('token');
           localStorage.removeItem('accessToken');
           setIsValid(false);
         }
       } catch (err) {
         console.error('Token verification failed:', err);
-        localStorage.removeItem('token');
         localStorage.removeItem('accessToken');
         setIsValid(false);
       }

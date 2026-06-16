@@ -14,7 +14,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
@@ -24,6 +26,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"company", "allowedIpAddresses", "employees"})
+@ToString(exclude = {"company", "allowedIpAddresses", "employees"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Branch {
     @Id

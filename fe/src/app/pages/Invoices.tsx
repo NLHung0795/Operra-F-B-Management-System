@@ -17,7 +17,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { HasRole } from "../components/HasRole";
+import { HasPermission } from "../components/HasPermission";
 
 interface InvoiceItem {
   name: string;
@@ -324,7 +324,7 @@ export function Invoices() {
                           <Printer className="w-4 h-4" />
                         </button>
                         {inv.status === "Completed" && (
-                          <HasRole roles={['ADMIN', 'MANAGER']}>
+                          <HasPermission anyOfPermissions={['MANAGE_COMPANY', 'MANAGE_EMPLOYEE']}>
                             <button
                               onClick={() => handleCancelInvoice(inv.id)}
                               className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-red-600 transition-colors"
@@ -332,7 +332,7 @@ export function Invoices() {
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
-                          </HasRole>
+                          </HasPermission>
                         )}
                       </div>
                     </td>
@@ -461,7 +461,7 @@ export function Invoices() {
             {/* Bottom Actions of Drawer */}
             <div className="p-4 border-t border-gray-100 flex gap-3 z-10 bg-white">
               {selectedInvoice.status === "Completed" && (
-                <HasRole roles={['ADMIN', 'MANAGER']}>
+                <HasPermission anyOfPermissions={['MANAGE_COMPANY', 'MANAGE_EMPLOYEE']}>
                   <button
                     onClick={() => handleCancelInvoice(selectedInvoice.id)}
                     className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border border-red-200"
@@ -469,7 +469,7 @@ export function Invoices() {
                     <Trash2 className="w-4 h-4" />
                     HỦY HÓA ĐƠN
                   </button>
-                </HasRole>
+                </HasPermission>
               )}
               <button
                 onClick={() => handlePrint(selectedInvoice.id)}

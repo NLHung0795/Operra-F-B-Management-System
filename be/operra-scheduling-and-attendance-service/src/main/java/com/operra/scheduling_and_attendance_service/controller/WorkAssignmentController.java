@@ -37,7 +37,7 @@ public class WorkAssignmentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_WORK_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('VIEW_SHIFT_ASSIGNMENT') or hasAuthority('MANAGE_WORK_ASSIGNMENT')")
     ApiResponse<List<WorkAssignmentResponse>> getAllWorkAssignments(@RequestParam(required = false) String shiftType) {
         return ApiResponse.<List<WorkAssignmentResponse>>builder()
                 .result(workAssignmentService.getAll(shiftType))
@@ -45,7 +45,7 @@ public class WorkAssignmentController {
     }
 
     @GetMapping("/{workAssignmentId}")
-    @PreAuthorize("hasAuthority('VIEW_WORK_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('VIEW_SHIFT_ASSIGNMENT') or hasAuthority('MANAGE_WORK_ASSIGNMENT')")
     ApiResponse<WorkAssignmentResponse> getWorkAssignment(@PathVariable String workAssignmentId) {
         return ApiResponse.<WorkAssignmentResponse>builder()
                 .result(workAssignmentService.getById(workAssignmentId))

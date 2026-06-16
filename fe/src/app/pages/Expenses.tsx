@@ -1,5 +1,6 @@
 import React from 'react';
 import { DollarSign, Plus, Download, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { hasPermission } from '../lib/auth';
 
 const MOCK_EXPENSES = [
   { id: 1, date: '12/04/2026', type: 'Thu', amount: 500000, category: 'Thêm tiền lẻ', note: 'Quản lý nạp thêm', staff: 'Nguyễn Văn An' },
@@ -26,10 +27,12 @@ export function Expenses() {
             <Download className="w-4 h-4" />
             Xuất Excel
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200">
-            <Plus className="w-4 h-4" />
-            Tạo phiếu Thu / Chi
-          </button>
+          {hasPermission("MANAGE_EXPENSE") && (
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200">
+              <Plus className="w-4 h-4" />
+              Tạo phiếu Thu / Chi
+            </button>
+          )}
         </div>
       </div>
 

@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EmployeeResponse {
     String id;
+    String userAccountId;
     String departmentName;
     String positionName;
     String branchId;

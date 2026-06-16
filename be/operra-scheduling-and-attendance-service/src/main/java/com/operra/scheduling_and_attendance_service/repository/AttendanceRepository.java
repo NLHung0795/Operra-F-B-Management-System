@@ -17,6 +17,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, String> 
             Instant to
     );
 
+    List<Attendance> findByCheckInTimeBetweenOrderByCheckInTimeAsc(Instant from, Instant to);
+
     List<Attendance> findByEmployeeIdAndShiftAssignmentOrderByCheckInTimeDesc(String employeeId, ShiftAssignment shiftAssignment);
 
     Optional<Attendance> findFirstByEmployeeIdAndShiftAssignmentAndCheckOutTimeIsNullOrderByCheckInTimeDesc(

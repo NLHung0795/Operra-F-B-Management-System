@@ -81,7 +81,8 @@ public class ApplicationInitConfig {
                 {"UPDATE_ORDER", "Update orders (add items, change table)"},
                 {"CANCEL_ORDER", "Cancel unpaid orders"},
                 {"MANAGE_INVOICE", "Manage payments and invoices"},
-
+                {"MANAGE_PRODUCT", "Manage menus and products catalog"},
+                
                 // Finance & Payroll
                 {"MANAGE_EXPENSE", "Create and manage expenses"},
                 {"VIEW_EXPENSE", "View expense details"},
@@ -113,6 +114,7 @@ public class ApplicationInitConfig {
                 "SUBMIT_LEAVE_REQUEST", "APPROVE_LEAVE_REQUEST", "VIEW_LEAVE_REQUEST",
                 "OPEN_CLOSE_CASH_SESSION", "VIEW_CASH_SESSION",
                 "CREATE_ORDER", "VIEW_ORDER", "UPDATE_ORDER", "CANCEL_ORDER", "MANAGE_INVOICE",
+                "MANAGE_PRODUCT",
                 "MANAGE_EXPENSE", "VIEW_EXPENSE", "MANAGE_PAYROLL", "VIEW_PERSONAL_PAYROLL", "VIEW_KPI"
             );
             Set<Permission> managerPerms = new HashSet<>();

@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,6 +57,8 @@ public class EmployeeService {
 
         if(Objects.isNull(userAccountResponse))
             throw new AppException(ErrorCode.USER_ACCOUNT_ERROR);
+
+        employee.setUserAccountId(userAccountResponse.getId());
         employee = employeeRepository.save(employee);
 
 //        EmployeeEvent employeeEvent = EmployeeEvent.builder()
@@ -79,6 +82,17 @@ public class EmployeeService {
 
     public EmployeeResponse getInternalById(String employeeId) {
         return getById(employeeId);
+    }
+
+    public EmployeeResponse getInternalByUserAccountId(String userAccountId) {
+        return employeeMapper.toEmployeeResponse(employeeRepository.findByUserAccountId(userAccountId)
+                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND)));
+    }
+
+    public EmployeeResponse getMyProfile() {
+        String userAccountId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return employeeMapper.toEmployeeResponse(employeeRepository.findByUserAccountId(userAccountId)
+                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND)));
     }
 
     public PageResponse<EmployeeResponse> getAll(int page, int size){

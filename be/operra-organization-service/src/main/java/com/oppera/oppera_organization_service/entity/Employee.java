@@ -28,6 +28,9 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
+    @Column(name = "user_account_id", unique = true)
+    String userAccountId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     Department department;

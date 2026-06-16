@@ -73,11 +73,22 @@ public class BranchService {
 
         branchMapper.updateBranch(branch, request);
 
-        // Update allowed IPs: clear old ones and save new ones
+        // Update allowed IPs: clear existing managed collection, then add new items
+        // IMPORTANT: never replace the Set reference — Hibernate tracks the original collection
         if (request.getAllowedIpAddresses() != null) {
-            branch.getAllowedIpAddresses().clear();
-            branchRepository.save(branch);
-            saveAllowedIps(branch, request.getAllowedIpAddresses());
+            if (branch.getAllowedIpAddresses() != null) {
+                branch.getAllowedIpAddresses().clear();
+            } else {
+                branch.setAllowedIpAddresses(new HashSet<>());
+            }
+
+            for (String ip : request.getAllowedIpAddresses()) {
+                var allowedIp = BranchAllowedIp.builder()
+                        .branch(branch)
+                        .ipAddress(ip)
+                        .build();
+                branch.getAllowedIpAddresses().add(allowedIp);
+            }
         }
 
         branch = branchRepository.save(branch);

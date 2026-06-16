@@ -2,6 +2,7 @@ package com.operra.scheduling_and_attendance_service.service;
 
 import com.operra.operra_common.exception.AppException;
 import com.operra.operra_common.exception.ErrorCode;
+import com.operra.operra_common.dto.response.EmployeeResponse;
 import com.operra.scheduling_and_attendance_service.attendance.method.AttendanceMethodContext;
 import com.operra.scheduling_and_attendance_service.attendance.method.AttendanceMethodResolver;
 import com.operra.scheduling_and_attendance_service.dto.request.AttendanceRequest;
@@ -9,6 +10,7 @@ import com.operra.scheduling_and_attendance_service.dto.request.AttendanceStatus
 import com.operra.scheduling_and_attendance_service.dto.response.AttendanceResponse;
 import com.operra.scheduling_and_attendance_service.dto.response.AttendanceSummaryResponse;
 import com.operra.scheduling_and_attendance_service.entity.Attendance;
+import com.operra.scheduling_and_attendance_service.entity.WorkAssignment;
 import com.operra.scheduling_and_attendance_service.enums.AttendanceMethodType;
 import com.operra.scheduling_and_attendance_service.enums.AttendanceStatus;
 import com.operra.scheduling_and_attendance_service.mapper.AttendanceMapper;
@@ -16,6 +18,7 @@ import com.operra.scheduling_and_attendance_service.repository.AttendanceReposit
 import com.operra.scheduling_and_attendance_service.repository.ShiftAssignmentRepository;
 import com.operra.scheduling_and_attendance_service.repository.WorkAssignmentRepository;
 import com.operra.scheduling_and_attendance_service.repository.httpclient.EmployeeClient;
+import feign.FeignException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.List;
@@ -50,10 +54,7 @@ public class AttendanceService {
     public AttendanceResponse checkIn(AttendanceRequest request, String ipAddress) {
         var methodType = AttendanceMethodType.valueOf(attendanceType.trim().toUpperCase());
 
-        var employee = employeeClient.getEmployee(request.getEmployeeId()).getResult();
-        if (employee == null) {
-            throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
-        }
+        var employee = getEmployeeByEmployeeOrUserAccountId(request.getEmployeeId());
 
         var shiftAssignment = shiftAssignmentRepository.findById(request.getShiftAssignmentId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHIFT_ASSIGNMENT_NOT_FOUND));
@@ -87,6 +88,7 @@ public class AttendanceService {
         attendanceMethodResolver.resolve(methodType).validate(context);
 
         var attendance = attendanceMapper.toAttendance(request);
+        attendance.setEmployeeId(employee.getId()); // ensure real Employee ID is stored, not User Account ID
         attendance.setShiftAssignment(shiftAssignment);
         attendance.setMethod(methodType);
         attendance.setCheckInTime(Instant.now());
@@ -108,10 +110,7 @@ public class AttendanceService {
     public AttendanceResponse checkOut(AttendanceRequest request, String ipAddress){
         var methodType = AttendanceMethodType.valueOf(attendanceType.trim().toUpperCase());
 
-        var employee = employeeClient.getEmployee(request.getEmployeeId()).getResult();
-        if (employee == null) {
-            throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
-        }
+        var employee = getEmployeeByEmployeeOrUserAccountId(request.getEmployeeId());
 
         var shiftAssignment = shiftAssignmentRepository.findById(request.getShiftAssignmentId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHIFT_ASSIGNMENT_NOT_FOUND));
@@ -160,6 +159,16 @@ public class AttendanceService {
                 .toList();
     }
 
+    public List<AttendanceResponse> getByDate(LocalDate date) {
+        var range = dayRange(date);
+
+        return attendanceRepository
+                .findByCheckInTimeBetweenOrderByCheckInTimeAsc(range.from(), range.to())
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public AttendanceSummaryResponse getSummary(String employeeId, int month, int year) {
         var attendances = getByEmployeeAndMonth(employeeId, month, year);
         long totalMinutes = attendances.stream()
@@ -192,9 +201,16 @@ public class AttendanceService {
     }
 
     private AttendanceResponse toResponse(Attendance attendance) {
+        WorkAssignment workAssignment = attendance.getShiftAssignment().getWorkAssignment();
+        var checkInTime = attendance.getCheckInTime().atZone(ZoneId.systemDefault()).toLocalTime();
+        var workAssignmentTime = workAssignment.getStartTime();
+
         var attendanceResponse = attendanceMapper.toResponse(attendance);
         attendanceResponse.setSuccess(true);
         attendanceResponse.setWorkedMinutes(calculateWorkedMinutes(attendance.getCheckInTime(), attendance.getCheckOutTime()));
+        attendanceResponse.setLateMinutes(workAssignmentTime.isBefore(checkInTime)
+                ? Duration.between(workAssignmentTime, checkInTime).toMinutes()
+                : 0);
         return attendanceResponse;
     }
 
@@ -213,6 +229,28 @@ public class AttendanceService {
         return new MonthRange(from, to);
     }
 
+    private MonthRange dayRange(LocalDate date) {
+        var zoneId = ZoneId.systemDefault();
+        Instant from = date.atStartOfDay(zoneId).toInstant();
+        Instant to = date.plusDays(1).atStartOfDay(zoneId).toInstant().minusMillis(1);
+        return new MonthRange(from, to);
+    }
+
     private record MonthRange(Instant from, Instant to) {
+    }
+
+    private EmployeeResponse getEmployeeByEmployeeOrUserAccountId(String id) {
+        try {
+            var response = employeeClient.getEmployee(id);
+            if (response != null && response.getResult() != null) {
+                return response.getResult();
+            }
+        } catch (FeignException exception) {
+            var response = employeeClient.getEmployeeByUserAccountId(id);
+            if (response != null && response.getResult() != null) {
+                return response.getResult();
+            }
+        }
+        throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
     }
 }

@@ -27,6 +27,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { identityApi } from '../lib/api';
 import { Toaster } from './ui/sonner';
+import { getAuthData, hasPermission, hasAnyRole, hasAnyPermission } from '../lib/auth';
 
 function cn(...inputs: any[]) {
   return twMerge(clsx(inputs));
@@ -38,79 +39,55 @@ interface SidebarItem {
   icon: any;
   label: string;
   path: string;
-  roles?: string[];
+  permission?: string;
+  anyOfPermissions?: string[];
+  excludeRoles?: string[];
 }
 
 const sidebarItems: Record<AppMode, SidebarItem[]> = {
   hrm: [
     { icon: LayoutDashboard, label: 'Tổng quan HRM', path: '/' },
-    { icon: Users, label: 'Nhân sự', path: '/employees', roles: ['ADMIN', 'MANAGER'] },
-    { icon: CalendarCheck, label: 'Phân ca (Shift)', path: '/shifts', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
-    { icon: Clock, label: 'Chấm công', path: '/attendance', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
-    { icon: CalendarHeart, label: 'Nghỉ phép', path: '/leaves', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
-    { icon: Wallet, label: 'Bảng lương', path: '/payroll', roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
-    { icon: Settings, label: 'Cài đặt', path: '/settings', roles: ['ADMIN'] },
+    { icon: Users, label: 'Nhân sự', path: '/employees', permission: 'VIEW_EMPLOYEE' },
+    { icon: CalendarCheck, label: 'Phân ca (Shift)', path: '/shifts', permission: 'VIEW_SHIFT_ASSIGNMENT' },
+    { 
+      icon: Clock, 
+      label: 'Chấm công', 
+      path: '/attendance', 
+      anyOfPermissions: ['VIEW_ATTENDANCE', 'ATTENDANCE_CHECK'],
+      excludeRoles: ['ADMIN']
+    },
+    { icon: CalendarHeart, label: 'Nghỉ phép', path: '/leaves', permission: 'VIEW_LEAVE_REQUEST' },
+    { icon: Wallet, label: 'Bảng lương', path: '/payroll', permission: 'VIEW_PERSONAL_PAYROLL' },
+    { icon: Settings, label: 'Cài đặt', path: '/settings', permission: 'CREATE_ROLE' },
   ],
   pos: [
-    { icon: LayoutDashboard, label: 'Báo cáo Kinh doanh', path: '/', roles: ['ADMIN', 'MANAGER'] },
-    { icon: ShoppingCart, label: 'Bán hàng (POS)', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Briefcase, label: 'Ca bán hàng', path: '/cash-session', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Coffee, label: 'Thực đơn (Menu)', path: '/products', roles: ['ADMIN', 'MANAGER'] },
-    { icon: FileText, label: 'Hóa đơn', path: '/invoices', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Building2, label: 'Công ty', path: '/companies', roles: ['ADMIN'] },
-    { icon: MapPin, label: 'Chi nhánh', path: '/branches', roles: ['ADMIN'] },
-    { icon: DollarSign, label: 'Thu chi (Expense)', path: '/expenses', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Settings, label: 'Cài đặt quán', path: '/settings', roles: ['ADMIN'] },
+    { icon: LayoutDashboard, label: 'Báo cáo Kinh doanh', path: '/', permission: 'VIEW_ORDER' },
+    { icon: ShoppingCart, label: 'Bán hàng (POS)', path: '/pos', permission: 'CREATE_ORDER' },
+    { icon: Briefcase, label: 'Ca bán hàng', path: '/cash-session', permission: 'VIEW_CASH_SESSION' },
+    { icon: Coffee, label: 'Thực đơn (Menu)', path: '/products', permission: 'MANAGE_PRODUCT' },
+    { icon: FileText, label: 'Hóa đơn', path: '/invoices', permission: 'VIEW_ORDER' },
+    { icon: Building2, label: 'Công ty', path: '/companies', permission: 'MANAGE_COMPANY' },
+    { icon: MapPin, label: 'Chi nhánh', path: '/branches', permission: 'MANAGE_BRANCH' },
+    { icon: DollarSign, label: 'Thu chi (Expense)', path: '/expenses', permission: 'VIEW_EXPENSE' },
+    { icon: Settings, label: 'Cài đặt quán', path: '/settings', permission: 'CREATE_ROLE' },
   ]
-};
-
-const getAuthData = () => {
-  const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-  if (!token) return { username: "Guest", roles: [] as string[], permissions: [] as string[] };
-  
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      window.atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    const payload = JSON.parse(jsonPayload);
-    const scope: string = payload.scope || "";
-    const authorities = scope.split(" ");
-    
-    const roles = authorities
-      .filter(a => a.startsWith("ROLE_"))
-      .map(r => r.replace("ROLE_", ""));
-    const permissions = authorities.filter(a => !a.startsWith("ROLE_"));
-    
-    return {
-      username: payload.sub || "User",
-      roles,
-      permissions
-    };
-  } catch (e) {
-    return { username: "Guest", roles: [] as string[], permissions: [] as string[] };
-  }
 };
 
 const getRoleLabel = (roles: string[]) => {
   if (roles.includes("ADMIN")) return "Quản trị viên";
   if (roles.includes("MANAGER")) return "Quản lý";
   if (roles.includes("CASHIER")) return "Thu ngân";
+  if (roles.includes("KITCHEN")) return "Nhân viên bếp";
   if (roles.includes("EMPLOYEE")) return "Nhân viên";
   return "Nhân viên";
 };
 
 export function MainLayout() {
-  const isMock = import.meta.env.VITE_USE_MOCK_DATA === "true";
   const auth = getAuthData();
-  const userRoles = auth.roles.length > 0 ? auth.roles : (isMock ? ['ADMIN'] : ['EMPLOYEE']);
+  const userRoles = auth.roles;
   
-  const canAccessHrm = userRoles.includes("ADMIN") || userRoles.includes("MANAGER") || userRoles.includes("EMPLOYEE");
-  const canAccessPos = userRoles.includes("ADMIN") || userRoles.includes("MANAGER") || userRoles.includes("CASHIER");
+  const canAccessHrm = true; // All authenticated users have basic HRM access for checkin/payroll/leaves
+  const canAccessPos = hasAnyRole(["ADMIN", "MANAGER", "CASHIER"]);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [mode, setMode] = useState<AppMode>(() => {
@@ -132,24 +109,33 @@ export function MainLayout() {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || '';
+      const token = localStorage.getItem('accessToken') || '';
       if (token) {
         await identityApi.logout(token);
       }
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      localStorage.removeItem('token');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('username');
+      localStorage.removeItem('employeeId');
       navigate('/login', { replace: true });
     }
   };
 
   const currentItems = sidebarItems[mode].filter(item => {
-    if (!item.roles) return true;
-    return item.roles.some(role => userRoles.includes(role));
+    if (item.excludeRoles && hasAnyRole(item.excludeRoles)) {
+      return false;
+    }
+    if (item.permission) {
+      return hasPermission(item.permission);
+    }
+    if (item.anyOfPermissions && item.anyOfPermissions.length > 0) {
+      return hasAnyPermission(item.anyOfPermissions);
+    }
+    return true;
   });
+
 
   return (
     <div className="flex h-screen bg-[#FAF9F6] text-[#2C1810]">

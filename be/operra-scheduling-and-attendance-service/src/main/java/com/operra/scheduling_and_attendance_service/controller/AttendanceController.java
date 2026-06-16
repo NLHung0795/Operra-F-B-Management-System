@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
 
@@ -53,7 +55,7 @@ public class AttendanceController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_ATTENDANCE')")
+    @PreAuthorize("hasAuthority('VIEW_ATTENDANCE') or hasAuthority('ATTENDANCE_CHECK')")
     ApiResponse<List<AttendanceResponse>> getAttendance(
             @RequestParam String employeeId,
             @RequestParam int month,
@@ -65,7 +67,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/summary")
-    @PreAuthorize("hasAuthority('VIEW_ATTENDANCE')")
+    @PreAuthorize("hasAuthority('VIEW_ATTENDANCE') or hasAuthority('ATTENDANCE_CHECK')")
     ApiResponse<AttendanceSummaryResponse> getAttendanceSummary(
             @RequestParam String employeeId,
             @RequestParam int month,
@@ -74,6 +76,16 @@ public class AttendanceController {
         int resolvedYear = year != null ? year : Year.now().getValue();
         return ApiResponse.<AttendanceSummaryResponse>builder()
                 .result(attendanceService.getSummary(employeeId, month, resolvedYear))
+                .build();
+    }
+
+    @GetMapping("/date/{date}")
+    @PreAuthorize("hasAuthority('VIEW_ATTENDANCE') or hasAuthority('ATTENDANCE_CHECK')")
+    ApiResponse<List<AttendanceResponse>> getAttendanceByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        return ApiResponse.<List<AttendanceResponse>>builder()
+                .result(attendanceService.getByDate(date))
                 .build();
     }
 

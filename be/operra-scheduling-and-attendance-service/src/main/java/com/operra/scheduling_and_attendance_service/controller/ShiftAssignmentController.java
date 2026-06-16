@@ -51,7 +51,7 @@ public class ShiftAssignmentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_SHIFT_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('VIEW_SHIFT_ASSIGNMENT') or hasAuthority('ATTENDANCE_CHECK')")
     ApiResponse<List<ShiftAssignmentResponse>> getShiftAssignments(
             @RequestParam String employeeId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,

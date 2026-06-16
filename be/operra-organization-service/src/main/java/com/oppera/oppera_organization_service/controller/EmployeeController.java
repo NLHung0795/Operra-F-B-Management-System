@@ -41,6 +41,13 @@ public class EmployeeController {
                 .build();
     }
 
+    @GetMapping("/me")
+    ApiResponse<EmployeeResponse> getMyProfile() {
+        return ApiResponse.<EmployeeResponse>builder()
+                .result(employeeService.getMyProfile())
+                .build();
+    }
+
     @GetMapping("/{employeeId}")
     @PreAuthorize("hasAuthority('VIEW_EMPLOYEE')")
     ApiResponse<EmployeeResponse> getEmployee(@PathVariable String employeeId) {

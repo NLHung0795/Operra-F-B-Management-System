@@ -33,6 +33,7 @@ import {
   DialogFooter,
 } from "../components/ui/dialog";
 import { toast } from "sonner";
+import { hasPermission } from "../lib/auth";
 
 export function Employees() {
   const [page, setPage] = useState(1);
@@ -239,13 +240,15 @@ export function Employees() {
           <h1 className="text-2xl font-bold text-gray-900">Danh sách nhân sự</h1>
           <p className="text-gray-500 text-sm">Dữ liệu lấy từ Organization Service.</p>
         </div>
-        <button
-          onClick={() => handleOpenFormModal()}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#5D4037] text-white rounded-xl font-semibold hover:bg-[#3E2723] transition-all shadow-sm shadow-stone-200"
-        >
-          <Plus className="w-4 h-4" />
-          Thêm nhân viên mới
-        </button>
+        {hasPermission("MANAGE_EMPLOYEE") && (
+          <button
+            onClick={() => handleOpenFormModal()}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#5D4037] text-white rounded-xl font-semibold hover:bg-[#3E2723] transition-all shadow-sm shadow-stone-200"
+          >
+            <Plus className="w-4 h-4" />
+            Thêm nhân viên mới
+          </button>
+        )}
       </div>
 
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center">
@@ -337,27 +340,41 @@ export function Employees() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => handleToggleStatus(employee)}
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase cursor-pointer hover:brightness-95 transition-all ${
-                          employee.status?.toUpperCase() === "ACTIVE"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                        title="Click để đổi trạng thái"
-                      >
-                        {employee.status ?? "ACTIVE"}
-                      </button>
+                      {hasPermission("MANAGE_EMPLOYEE") ? (
+                        <button
+                          onClick={() => handleToggleStatus(employee)}
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase cursor-pointer hover:brightness-95 transition-all ${
+                            employee.status?.toUpperCase() === "ACTIVE"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                          title="Click để đổi trạng thái"
+                        >
+                          {employee.status ?? "ACTIVE"}
+                        </button>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            employee.status?.toUpperCase() === "ACTIVE"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {employee.status ?? "ACTIVE"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleOpenFormModal(employee)}
-                          className="p-2 text-gray-400 hover:text-[#5D4037] hover:bg-[#EFEBE9] rounded-lg transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      {hasPermission("MANAGE_EMPLOYEE") && (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenFormModal(employee)}
+                            className="p-2 text-gray-400 hover:text-[#5D4037] hover:bg-[#EFEBE9] rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

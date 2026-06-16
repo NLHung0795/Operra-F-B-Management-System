@@ -14,6 +14,7 @@ import com.operra.scheduling_and_attendance_service.mapper.WorkAssignmentMapper;
 import com.operra.scheduling_and_attendance_service.repository.ShiftAssignmentRepository;
 import com.operra.scheduling_and_attendance_service.repository.WorkAssignmentRepository;
 import com.operra.scheduling_and_attendance_service.repository.httpclient.EmployeeClient;
+import feign.FeignException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -90,8 +91,8 @@ public class ShiftAssignmentService {
     }
 
     public List<ShiftAssignmentResponse> getByEmployeeAndDateRange(String employeeId, LocalDate fromDate, LocalDate toDate) {
-        var employee = getEmployeeById(employeeId, ErrorCode.EMPLOYEE_NOT_FOUND);
-        return shiftAssignmentRepository.findByEmployeeIdAndDateBetween(employeeId, fromDate, toDate).stream()
+        var employee = getEmployeeByEmployeeOrUserAccountId(employeeId);
+        return shiftAssignmentRepository.findByEmployeeIdAndDateBetween(employee.getId(), fromDate, toDate).stream()
                 .map(shiftAssignment -> toResponse(shiftAssignment, employee, null))
                 .toList();
     }
@@ -160,6 +161,18 @@ public class ShiftAssignmentService {
             throw new AppException(errorCode);
         }
         return employeeResponse.getResult();
+    }
+
+    private EmployeeResponse getEmployeeByEmployeeOrUserAccountId(String id) {
+        try {
+            return getEmployeeById(id, ErrorCode.EMPLOYEE_NOT_FOUND);
+        } catch (FeignException exception) {
+            var employeeResponse = employeeClient.getEmployeeByUserAccountId(id);
+            if (Objects.isNull(employeeResponse) || Objects.isNull(employeeResponse.getResult())) {
+                throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
+            }
+            return employeeResponse.getResult();
+        }
     }
 
     private void validateDuplicateShift(

@@ -27,6 +27,13 @@ public class InternalEmployeeController {
                 .build();
     }
 
+    @GetMapping("/user-account/{userAccountId}")
+    ApiResponse<EmployeeResponse> getEmployeeByUserAccountId(@PathVariable String userAccountId) {
+        return ApiResponse.<EmployeeResponse>builder()
+                .result(employeeService.getInternalByUserAccountId(userAccountId))
+                .build();
+    }
+
     @GetMapping("/branch/{branchId}/count")
     ApiResponse<Long> countEmployeesByBranch(@PathVariable String branchId) {
         return ApiResponse.<Long>builder()

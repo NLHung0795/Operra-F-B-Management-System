@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarHeart, Plus, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { hasPermission } from '../lib/auth';
 
 const MOCK_LEAVES = [
   { id: 1, emp: 'Nguyễn Văn An', type: 'Nghỉ ốm', dates: '12/04 - 13/04', status: 'approved' },
@@ -18,10 +19,12 @@ export function Leaves() {
           <h1 className="text-2xl font-bold text-gray-900">Nghỉ phép (Leave Requests)</h1>
           <p className="text-gray-500 text-sm">Quản lý và phê duyệt đơn xin nghỉ phép của nhân sự</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm">
-          <Plus className="w-4 h-4" />
-          Tạo đơn nghỉ phép
-        </button>
+        {hasPermission("SUBMIT_LEAVE_REQUEST") && (
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm">
+            <Plus className="w-4 h-4" />
+            Tạo đơn nghỉ phép
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -57,7 +60,7 @@ export function Leaves() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {leave.status === 'pending' && (
+                    {leave.status === 'pending' && hasPermission("APPROVE_LEAVE_REQUEST") && (
                       <div className="flex items-center justify-end gap-2">
                         <button className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Duyệt">
                           <CheckCircle className="w-5 h-5" />

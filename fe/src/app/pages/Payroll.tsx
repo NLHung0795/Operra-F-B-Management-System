@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import { hasPermission, getAuthData } from '../lib/auth';
 
 const payrollData = [
   { id: 'PAY-001', name: 'Nguyễn Văn An', role: 'Bếp trưởng', basicSalary: 15000000, allowance: 2000000, bonus: 1500000, tax: 800000, total: 17700000, status: 'Paid' },
@@ -21,6 +22,70 @@ const payrollData = [
 export function Payroll() {
   const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
   const payrolls = useMock ? payrollData : [];
+  const auth = getAuthData();
+
+  if (!hasPermission("MANAGE_PAYROLL")) {
+    const personalRecord = useMock ? (
+      auth.username === 'cashier' ? payrollData[1] : // Lê Thị Bình
+      auth.username === 'employee' ? payrollData[0] : // Nguyễn Văn An
+      auth.username === 'kitchen' ? payrollData[2] : // Trần Văn Cường
+      (payrollData.find(p => p.name.toLowerCase() === auth.username.toLowerCase()) || payrollData[0])
+    ) : null;
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Phiếu lương cá nhân</h1>
+          <p className="text-gray-500 text-sm">Xem chi tiết lương, thưởng và khấu trừ thuế cá nhân tháng 04/2026.</p>
+        </div>
+        
+        {personalRecord ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-2xl mx-auto space-y-6">
+            <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="text-xl font-bold text-[#3E2723]">{personalRecord.name}</h2>
+                <p className="text-sm text-gray-500">{personalRecord.role}</p>
+                <p className="text-xs text-gray-400 mt-1">Mã phiếu: {personalRecord.id}</p>
+              </div>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                personalRecord.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+              }`}>
+                {personalRecord.status === 'Paid' ? 'Đã chi trả' : 'Chờ duyệt'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 uppercase font-bold">Lương cơ bản</p>
+                <p className="text-lg font-bold text-gray-900 mt-1">{personalRecord.basicSalary.toLocaleString()}đ</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 uppercase font-bold">Phụ cấp</p>
+                <p className="text-lg font-bold text-gray-900 mt-1">{personalRecord.allowance.toLocaleString()}đ</p>
+              </div>
+              <div className="p-4 bg-emerald-50/50 rounded-xl">
+                <p className="text-xs text-emerald-700 uppercase font-bold">Thưởng doanh số</p>
+                <p className="text-lg font-bold text-emerald-700 mt-1">+{personalRecord.bonus.toLocaleString()}đ</p>
+              </div>
+              <div className="p-4 bg-red-50/50 rounded-xl">
+                <p className="text-xs text-red-700 uppercase font-bold">Thuế / Khấu trừ</p>
+                <p className="text-lg font-bold text-red-600 mt-1">-{personalRecord.tax.toLocaleString()}đ</p>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-150 pt-4 flex justify-between items-center bg-[#FAF9F6] p-4 rounded-xl">
+              <span className="text-base font-bold text-gray-800">Thực nhận chuyển khoản</span>
+              <span className="text-2xl font-extrabold text-[#3E2723]">{personalRecord.total.toLocaleString()}đ</span>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-500">
+            Không tìm thấy thông tin phiếu lương cá nhân (Vui lòng bật Mock Data hoặc liên kết API).
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const stats = [
     { label: 'Tổng quỹ lương', value: useMock ? '452.5M' : '0đ', icon: DollarSign, color: 'text-blue-600', bg: 'bg-blue-50' },

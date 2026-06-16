@@ -23,4 +23,5 @@ public class AttendanceResponse {
     AttendanceStatus checkInStatus;
     AttendanceStatus checkOutStatus;
     Long workedMinutes;
+    Long lateMinutes;
 }

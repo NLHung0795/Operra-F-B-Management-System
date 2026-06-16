@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "../components/ui/dialog";
 import { toast } from "sonner";
+import { hasPermission } from "../lib/auth";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -520,20 +521,24 @@ export function Shifts() {
                 <option value="AFTERNOON">AFTERNOON</option>
                 <option value="NIGHT">NIGHT</option>
               </select>
-              <button
-                onClick={() => handleOpenWorkModal()}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 text-gray-700 shadow-sm transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                Thêm mẫu ca
-              </button>
-              <button
-                onClick={handleOpenAssignModal}
-                className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200"
-              >
-                <Plus className="w-4 h-4" />
-                Thêm phân ca
-              </button>
+              {hasPermission("MANAGE_WORK_ASSIGNMENT") && (
+                <button
+                  onClick={() => handleOpenWorkModal()}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 text-gray-700 shadow-sm transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Thêm mẫu ca
+                </button>
+              )}
+              {hasPermission("MANAGE_SHIFT_ASSIGNMENT") && (
+                <button
+                  onClick={handleOpenAssignModal}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200"
+                >
+                  <Plus className="w-4 h-4" />
+                  Thêm phân ca
+                </button>
+              )}
             </div>
           </>
         ) : (
@@ -628,20 +633,22 @@ export function Shifts() {
                         <p className="text-sm font-semibold text-gray-700">{shift.shiftType}</p>
                         <p className="text-xs text-gray-400">{shift.breakTime ?? 0} phút nghỉ</p>
                       </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenWorkModal(shift)}
-                          className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-blue-600"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeletingWorkId(shift.id)}
-                          className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-red-600"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      {hasPermission("MANAGE_WORK_ASSIGNMENT") && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenWorkModal(shift)}
+                            className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-blue-600"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingWorkId(shift.id)}
+                            className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-red-600"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -727,20 +734,22 @@ export function Shifts() {
                           </div>
                         </td>
                         <td className="py-4 px-6 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleOpenEditAssignModal(assignment)}
-                              className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-blue-600 transition-all"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setDeletingAssignId(assignment.id)}
-                              className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-red-600 transition-all"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          {hasPermission("MANAGE_SHIFT_ASSIGNMENT") && (
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleOpenEditAssignModal(assignment)}
+                                className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-blue-600 transition-all"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setDeletingAssignId(assignment.id)}
+                                className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-red-600 transition-all"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -829,20 +838,22 @@ export function Shifts() {
                         {assignment.assignedBy?.fullname ?? "Không rõ"}
                       </td>
                       <td className="py-4 px-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleOpenEditAssignModal(assignment)}
-                            className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-blue-600 transition-all"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeletingAssignId(assignment.id)}
-                            className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-red-600 transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        {hasPermission("MANAGE_SHIFT_ASSIGNMENT") && (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleOpenEditAssignModal(assignment)}
+                              className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-blue-600 transition-all"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setDeletingAssignId(assignment.id)}
+                              className="p-1.5 hover:bg-gray-100 rounded text-gray-600 hover:text-red-600 transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

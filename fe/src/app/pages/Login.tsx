@@ -19,7 +19,7 @@ export function Login() {
   useEffect(() => {
     const checkToken = async () => {
       try {
-        const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+        const token = localStorage.getItem('accessToken');
         if (token) {
           // Verify token is still valid
           const result = await identityApi.introspect(token);
@@ -28,13 +28,11 @@ export function Login() {
             navigate('/', { replace: true });
           } else {
             // Token invalid, clear it
-            localStorage.removeItem('token');
             localStorage.removeItem('accessToken');
           }
         }
       } catch (err) {
         console.error('Token check failed:', err);
-        localStorage.removeItem('token');
         localStorage.removeItem('accessToken');
       } finally {
         setIsCheckingToken(false);
@@ -57,9 +55,9 @@ export function Login() {
 
       if (response.token) {
         // Lưu token vào localStorage
-        localStorage.setItem('token', response.token);
         localStorage.setItem('accessToken', response.token);
         localStorage.setItem('username', username.trim());
+        localStorage.removeItem('employeeId');
         
         if (response.mustChangePassword) {
           // Redirect đến trang đổi mật khẩu bắt buộc

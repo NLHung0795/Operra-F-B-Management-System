@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Clock, 
@@ -12,7 +12,8 @@ import {
   Award,
   ShoppingCart,
   Banknote,
-  Target
+  Target,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -28,6 +29,28 @@ import {
 } from 'recharts';
 import { useOutletContext } from 'react-router';
 import type { AppMode } from '../components/MainLayout';
+import { schedulingApi, organizationApi } from '../lib/api';
+import { toast } from 'sonner';
+import { getAuthData } from '../lib/auth';
+
+const getLoggedInUserAccountId = () => {
+  const token = localStorage.getItem('accessToken');
+  if (!token) return null;
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    return payload.sub || null;
+  } catch (e) {
+    return null;
+  }
+};
 
 const attendanceData = [
   { day: 'Th 2', attendance: 85, late: 12 },
@@ -53,8 +76,140 @@ const revenueData = [
 export function Dashboard() {
   const { mode } = useOutletContext<{ mode: AppMode }>();
   const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const auth = getAuthData();
+  const isAdmin = auth.roles.includes('ADMIN');
 
   const isHrm = mode === 'hrm';
+
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [todayShift, setTodayShift] = useState<any | null>(null);
+  const [todayAttendance, setTodayAttendance] = useState<any | null>(null);
+  const [summary, setSummary] = useState<any | null>(null);
+  const [loadingTimecard, setLoadingTimecard] = useState(false);
+  const [timecardNonce, setTimecardNonce] = useState(0);
+
+  useEffect(() => {
+    const fetchTimecardData = async () => {
+      setLoadingTimecard(true);
+      try {
+        let empId = localStorage.getItem('employeeId');
+
+        if (useMock) {
+          empId = getLoggedInUserAccountId();
+        } else if (!empId) {
+          try {
+            const emp = await organizationApi.getEmployeesMe();
+            if (emp && emp.id) {
+              empId = emp.id;
+              localStorage.setItem('employeeId', empId);
+            }
+          } catch (err) {
+            console.error("Failed to fetch current employee profile:", err);
+          }
+        }
+
+        setEmployeeId(empId);
+
+        if (!empId) {
+          setLoadingTimecard(false);
+          return;
+        }
+
+        if (useMock) {
+          setLoadingTimecard(false);
+          return;
+        }
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        
+        // 1. Get today's shift assignments
+        const shifts = await schedulingApi.getShiftAssignments({
+          employeeId: empId,
+          fromDate: todayStr,
+          toDate: todayStr
+        });
+        
+        const activeShift = shifts && shifts.length > 0 ? shifts[0] : null;
+        setTodayShift(activeShift);
+
+        // 2. Get this month's attendance
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        const attendanceList = await schedulingApi.getAttendance(empId, currentMonth, currentYear);
+        const todayRecord = (attendanceList || []).find(att => {
+          if (!att.checkInTime) return false;
+          const checkInDate = new Date(att.checkInTime).toISOString().slice(0, 10);
+          return checkInDate === todayStr;
+        });
+        setTodayAttendance(todayRecord || null);
+
+        // 3. Get monthly summary
+        const summaryData = await schedulingApi.getAttendanceSummary(empId, currentMonth, currentYear);
+        setSummary(summaryData);
+      } catch (err) {
+        console.error("Failed to load timecard data:", err);
+      } finally {
+        setLoadingTimecard(false);
+      }
+    };
+
+    fetchTimecardData();
+  }, [useMock, timecardNonce]);
+
+  const handleCheckIn = async () => {
+    if (useMock) {
+      const mockRecord = {
+        id: "att_mock_" + Date.now(),
+        checkInTime: new Date().toISOString(),
+        status: "CHECK_IN_ON_TIME",
+        location: "Văn phòng"
+      };
+      setTodayAttendance(mockRecord);
+      toast.success("Check-in thành công (Giả lập)!");
+      return;
+    }
+
+    if (!employeeId || !todayShift) {
+      toast.error("Không tìm thấy ca làm việc của bạn hôm nay");
+      return;
+    }
+
+    try {
+      const res = await schedulingApi.checkIn(employeeId, todayShift.id, "Văn phòng");
+      toast.success("Check-in thành công!");
+      setTodayAttendance(res);
+      setTimecardNonce(n => n + 1);
+    } catch (err: any) {
+      toast.error("Check-in thất bại: " + err.message);
+    }
+  };
+
+  const handleCheckOut = async () => {
+    if (useMock) {
+      setTodayAttendance((prev: any) => ({
+        ...prev,
+        checkOutTime: new Date().toISOString()
+      }));
+      toast.success("Check-out thành công (Giả lập)!");
+      return;
+    }
+
+    if (!employeeId || !todayShift) {
+      toast.error("Không tìm thấy ca làm việc hôm nay");
+      return;
+    }
+
+    try {
+      const res = await schedulingApi.checkOut(employeeId, todayShift.id, "Văn phòng");
+      toast.success("Check-out thành công!");
+      setTodayAttendance(res);
+      setTimecardNonce(n => n + 1);
+    } catch (err: any) {
+      toast.error("Check-out thất bại: " + err.message);
+    }
+  };
 
   const statsHrm = [
     { label: 'Tổng nhân sự', value: useMock ? '154' : '0', change: useMock ? '+12%' : '0%', icon: Users, color: 'text-[#5D4037]', bg: 'bg-[#EFEBE9]' },
@@ -177,42 +332,153 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">
-              Hoạt động gần đây
-            </h3>
-            <button className="text-[#007AFF] text-xs font-semibold hover:underline">Xem tất cả</button>
-          </div>
-          <div className="space-y-4">
-            {activitiesList.length === 0 ? (
-              <p className="text-center text-sm text-gray-400 py-12">Không có hoạt động nào gần đây</p>
+        <div className="space-y-6">
+          {/* Timecard Chấm công */}
+          {!isAdmin && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="w-5 h-5 text-[#5D4037]" />
+                <h3 className="text-lg font-bold text-gray-900">
+                  Khu vực chấm công
+                </h3>
+              </div>
+
+            {loadingTimecard ? (
+              <div className="flex flex-col items-center justify-center py-6">
+                <div className="w-6 h-6 border-2 border-[#5D4037]/20 border-t-[#5D4037] rounded-full animate-spin mb-2" />
+                <p className="text-xs text-gray-400">Đang tải ca làm việc...</p>
+              </div>
             ) : (
-              activitiesList.map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between p-3 border border-gray-50 rounded-xl hover:bg-gray-50 transition-all group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      activity.status === 'warning' ? "bg-amber-50 text-amber-600" :
-                      activity.status === 'success' ? "bg-emerald-50 text-emerald-600" :
-                      activity.status === 'info' ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600"
-                    }`}>
-                      {activity.type === 'attendance' && <Clock className="w-5 h-5" />}
-                      {activity.type === 'sale' && <Banknote className="w-5 h-5" />}
-                      {activity.type === 'session' && <Briefcase className="w-5 h-5" />}
-                      {activity.type === 'expense' && <DollarSign className="w-5 h-5" />}
-                      {activity.type === 'leave' && <CalendarCheck className="w-5 h-5" />}
-                      {activity.type === 'shift' && <Users className="w-5 h-5" />}
-                      {activity.type === 'payroll' && <FileText className="w-5 h-5" />}
+              <div className="space-y-4">
+                <div className="bg-[#FAF9F6] p-4 rounded-xl border border-gray-100">
+                  <p className="text-xs font-bold text-gray-400 uppercase">Ca làm hôm nay</p>
+                  {useMock ? (
+                    <div className="mt-1">
+                      <p className="text-sm font-bold text-gray-800">Ca sáng (MOCK_SHIFT)</p>
+                      <p className="text-xs text-gray-500 font-medium">Khung giờ: 08:00 - 16:00</p>
+                    </div>
+                  ) : todayShift ? (
+                    <div className="mt-1">
+                      <p className="text-sm font-bold text-gray-800">
+                        {todayShift.workAssignment?.name}
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        Khung giờ: {todayShift.workAssignment?.startTime.slice(0, 5)} - {todayShift.workAssignment?.endTime.slice(0, 5)}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-bold text-red-500 mt-1">Hôm nay không có lịch phân ca</p>
+                  )}
+                </div>
+
+                {(useMock || todayShift) && (
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-xs text-gray-500 font-semibold px-1">
+                      <span className="flex items-center gap-1">
+                        {todayAttendance ? (
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <span className="w-4 h-4 rounded-full border border-gray-300" />
+                        )}
+                        Check-in
+                        {todayAttendance?.checkInTime && (
+                          <span className="font-mono text-gray-700">
+                            ({new Date(todayAttendance.checkInTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })})
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        {todayAttendance?.checkOutTime ? (
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <span className="w-4 h-4 rounded-full border border-gray-300" />
+                        )}
+                        Check-out
+                        {todayAttendance?.checkOutTime && (
+                          <span className="font-mono text-gray-700">
+                            ({new Date(todayAttendance.checkOutTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })})
+                          </span>
+                        )}
+                      </span>
+                    </div>
+
+                    {!todayAttendance ? (
+                      <button
+                        onClick={handleCheckIn}
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-sm"
+                      >
+                        Check-in
+                      </button>
+                    ) : !todayAttendance.checkOutTime ? (
+                      <button
+                        onClick={handleCheckOut}
+                        className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all shadow-sm"
+                      >
+                        Check-out
+                      </button>
+                    ) : (
+                      <div className="w-full py-2.5 bg-gray-100 text-gray-500 font-bold rounded-xl text-center text-sm border border-gray-200">
+                        Đã hoàn thành chấm công hôm nay!
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {summary && (
+                  <div className="border-t pt-4 grid grid-cols-2 gap-2 text-center bg-[#FAF9F6]/50 p-2 rounded-xl">
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Số ca đi làm</p>
+                      <p className="text-sm font-bold text-gray-800 mt-0.5">{summary.attendanceCount || 0}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#007AFF] transition-colors">{activity.action}</p>
-                      <p className="text-xs text-gray-500 mt-1">{activity.user} • {activity.time}</p>
+                      <p className="text-xs text-gray-500 font-medium">Số giờ làm</p>
+                      <p className="text-sm font-bold text-gray-800 mt-0.5">{summary.totalHours ? summary.totalHours.toFixed(1) : 0}h</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
-                </div>
-              ))
+                )}
+              </div>
             )}
+            </div>
+          )}
+
+          {/* Hoạt động gần đây */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900">
+                Hoạt động gần đây
+              </h3>
+              <button className="text-[#007AFF] text-xs font-semibold hover:underline">Xem tất cả</button>
+            </div>
+            <div className="space-y-4">
+              {activitiesList.length === 0 ? (
+                <p className="text-center text-sm text-gray-400 py-12">Không có hoạt động nào gần đây</p>
+              ) : (
+                activitiesList.map((activity) => (
+                  <div key={activity.id} className="flex items-center justify-between p-3 border border-gray-50 rounded-xl hover:bg-gray-50 transition-all group">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        activity.status === 'warning' ? "bg-amber-50 text-amber-600" :
+                        activity.status === 'success' ? "bg-emerald-50 text-emerald-600" :
+                        activity.status === 'info' ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600"
+                      }`}>
+                        {activity.type === 'attendance' && <Clock className="w-5 h-5" />}
+                        {activity.type === 'sale' && <Banknote className="w-5 h-5" />}
+                        {activity.type === 'session' && <Briefcase className="w-5 h-5" />}
+                        {activity.type === 'expense' && <DollarSign className="w-5 h-5" />}
+                        {activity.type === 'leave' && <CalendarCheck className="w-5 h-5" />}
+                        {activity.type === 'shift' && <Users className="w-5 h-5" />}
+                        {activity.type === 'payroll' && <FileText className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#007AFF] transition-colors">{activity.action}</p>
+                        <p className="text-xs text-gray-500 mt-1">{activity.user} • {activity.time}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

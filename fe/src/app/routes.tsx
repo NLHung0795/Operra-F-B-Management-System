@@ -17,6 +17,9 @@ import { Settings } from "./pages/Settings";
 import { Login } from "./pages/Login";
 import { ChangePassword } from "./pages/ChangePassword";
 import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute";
+import { HasPermission } from "./components/HasPermission";
+import { Forbidden } from "./components/Forbidden";
+import { hasPermission, hasRole } from "./lib/auth";
 
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center h-full text-center">
@@ -28,6 +31,11 @@ const NotFound = () => (
   </div>
 );
 
+function AttendanceRouteGuard() {
+  const isAllowed = !hasRole("ADMIN") && (hasPermission("VIEW_ATTENDANCE") || hasPermission("ATTENDANCE_CHECK"));
+  return isAllowed ? <Attendance /> : <Forbidden />;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/login",
@@ -35,30 +43,117 @@ export const router = createBrowserRouter([
   },
   {
     path: "/change-password",
-    element: <ChangePassword />,
+    element: <ProtectedRoute element={<ChangePassword />} />,
   },
   {
     path: "/",
-    Component: MainLayout,
+    element: <ProtectedRoute element={<MainLayout />} />,
     children: [
       { index: true, Component: Dashboard },
       // HRM Routes
-      { path: "employees", Component: Employees },
-      { path: "attendance", Component: Attendance },
-      { path: "shifts", Component: Shifts },
-      { path: "leaves", Component: Leaves },
-      { path: "payroll", Component: Payroll },
+      {
+        path: "employees",
+        element: (
+          <HasPermission permission="VIEW_EMPLOYEE" fallback={<Forbidden />}>
+            <Employees />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "attendance",
+        element: <AttendanceRouteGuard />,
+      },
+      {
+        path: "shifts",
+        element: (
+          <HasPermission permission="VIEW_SHIFT_ASSIGNMENT" fallback={<Forbidden />}>
+            <Shifts />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "leaves",
+        element: (
+          <HasPermission permission="VIEW_LEAVE_REQUEST" fallback={<Forbidden />}>
+            <Leaves />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "payroll",
+        element: (
+          <HasPermission permission="VIEW_PERSONAL_PAYROLL" fallback={<Forbidden />}>
+            <Payroll />
+          </HasPermission>
+        ),
+      },
       
       // POS Routes
-      { path: "pos", Component: POSScreen },
-      { path: "cash-session", Component: CashSession },
-      { path: "products", Component: Products },
-      { path: "expenses", Component: Expenses },
-      { path: "companies", Component: CompanyManagement },
-      { path: "branches", Component: BranchManagement },
-      { path: "invoices", Component: Invoices },
+      {
+        path: "pos",
+        element: (
+          <HasPermission permission="CREATE_ORDER" fallback={<Forbidden />}>
+            <POSScreen />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "cash-session",
+        element: (
+          <HasPermission permission="VIEW_CASH_SESSION" fallback={<Forbidden />}>
+            <CashSession />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "products",
+        element: (
+          <HasPermission permission="MANAGE_PRODUCT" fallback={<Forbidden />}>
+            <Products />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "expenses",
+        element: (
+          <HasPermission permission="VIEW_EXPENSE" fallback={<Forbidden />}>
+            <Expenses />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "companies",
+        element: (
+          <HasPermission permission="MANAGE_COMPANY" fallback={<Forbidden />}>
+            <CompanyManagement />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "branches",
+        element: (
+          <HasPermission permission="MANAGE_BRANCH" fallback={<Forbidden />}>
+            <BranchManagement />
+          </HasPermission>
+        ),
+      },
+      {
+        path: "invoices",
+        element: (
+          <HasPermission permission="VIEW_ORDER" fallback={<Forbidden />}>
+            <Invoices />
+          </HasPermission>
+        ),
+      },
       
-      { path: "settings", Component: Settings },
+      {
+        path: "settings",
+        element: (
+          <HasPermission permission="CREATE_ROLE" fallback={<Forbidden />}>
+            <Settings />
+          </HasPermission>
+        ),
+      },
       { path: "*", Component: NotFound },
     ],
   },

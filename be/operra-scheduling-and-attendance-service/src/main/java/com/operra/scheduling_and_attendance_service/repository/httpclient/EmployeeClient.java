@@ -16,6 +16,9 @@ public interface EmployeeClient {
     @GetMapping(value = "/internal/employees/{employeeId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ApiResponse<EmployeeResponse> getEmployee(@PathVariable("employeeId") String employeeId);
 
+    @GetMapping(value = "/internal/employees/user-account/{userAccountId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    ApiResponse<EmployeeResponse> getEmployeeByUserAccountId(@PathVariable("userAccountId") String userAccountId);
+
     @GetMapping(value = "/internal/employees/branch/{branchId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ApiResponse<List<EmployeeResponse>> getEmployeesByBranch(@PathVariable("branchId") String branchId);
 }
