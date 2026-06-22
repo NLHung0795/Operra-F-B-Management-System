@@ -166,6 +166,13 @@ public class AuthenticationService {
                 });
             });
         }
+
+        if(!CollectionUtils.isEmpty(userAccount.getPermissions())){
+            userAccount.getPermissions().forEach(permission -> {
+                stringJoiner.add(permission.getName());
+            });
+        }
+
         return stringJoiner.toString();
     }
 

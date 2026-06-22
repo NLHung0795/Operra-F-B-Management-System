@@ -79,6 +79,12 @@
 							<artifactId>lombok</artifactId>
 							<version>${projectlombok-lombok.version}</version>
 						</path>
+						<!-- Lombok-Mapstruct Binding -->
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok-mapstruct-binding</artifactId>
+							<version>0.2.0</version>
+						</path>
 						<!-- MapStruct -->
 						<path>
 							<groupId>org.mapstruct</groupId>

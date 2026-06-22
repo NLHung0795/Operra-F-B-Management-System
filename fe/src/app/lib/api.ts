@@ -163,6 +163,26 @@ export type RoleResponse = {
     permissions?: PermissionResponse[];
 };
 
+export type RoleUpdateRequest = {
+    description?: string;
+    permissions?: string[];
+};
+
+export type RoleUpdateResponse = {
+    name: string;
+    description?: string;
+    permissions?: PermissionResponse[];
+};
+
+export type PermissionUpdateRequest = {
+    description?: string;
+};
+
+export type PermissionUpdateResponse = {
+    name: string;
+    description?: string;
+};
+
 export type UserAccountCreationRequest = {
     username: string;
     password: string;
@@ -170,6 +190,7 @@ export type UserAccountCreationRequest = {
     creationDate?: string;
     status?: string;
     roles?: string[];
+    permissions?: string[];
 };
 
 export type UserAccountCreationResponse = {
@@ -177,7 +198,15 @@ export type UserAccountCreationResponse = {
     username: string;
     email: string;
     creationDate?: string;
+    status?: string;
     roles?: string[];
+    permissions?: string[];
+};
+
+export type UserAccountAdminUpdateRequest = {
+    roles?: string[];
+    permissions?: string[];
+    status?: string;
 };
 
 // Attendance Types
@@ -620,12 +649,27 @@ export const identityApi = {
             body: JSON.stringify(body),
         }),
     getUserAccounts: () => request<UserAccountCreationResponse[]>(identityBaseUrl, "/useraccounts"),
+    updateUserAccount: (id: string, body: UserAccountAdminUpdateRequest) =>
+        request<UserAccountCreationResponse>(identityBaseUrl, `/useraccounts/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+        }),
+    deleteUserAccount: (id: string) =>
+        request<string>(identityBaseUrl, `/useraccounts/${id}`, { method: "DELETE" }),
     updatePassword: (password: string) =>
         request<{ status: string }>(identityBaseUrl, "/useraccounts", { method: "PUT", body: JSON.stringify({ password }) }),
     getRoles: () => request<RoleResponse[]>(identityBaseUrl, "/roles"),
     createRole: (body: { name: string; description?: string; permissions?: string[] }) =>
         request<RoleResponse>(identityBaseUrl, "/roles", { method: "POST", body: JSON.stringify(body) }),
+    updateRole: (name: string, body: RoleUpdateRequest) =>
+        request<RoleUpdateResponse>(identityBaseUrl, `/roles/${name}`, { method: "PUT", body: JSON.stringify(body) }),
+    deleteRole: (name: string) =>
+        request<void>(identityBaseUrl, `/roles/${name}`, { method: "DELETE" }),
     getPermissions: () => request<PermissionResponse[]>(identityBaseUrl, "/permissions"),
     createPermission: (body: { name: string; description?: string }) =>
         request<PermissionResponse>(identityBaseUrl, "/permissions", { method: "POST", body: JSON.stringify(body) }),
+    updatePermission: (name: string, body: PermissionUpdateRequest) =>
+        request<PermissionUpdateResponse>(identityBaseUrl, `/permissions/${name}`, { method: "PUT", body: JSON.stringify(body) }),
+    deletePermission: (name: string) =>
+        request<void>(identityBaseUrl, `/permissions/${name}`, { method: "DELETE" }),
 };

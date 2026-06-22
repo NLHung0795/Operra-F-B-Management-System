@@ -26,5 +26,8 @@ public class UserAccount {
     @ManyToMany
     Set<Role> roles;
 
+    @ManyToMany
+    Set<Permission> permissions;
+
     boolean mustChangePassword;
 }

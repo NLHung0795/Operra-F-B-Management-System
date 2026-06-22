@@ -4,6 +4,7 @@ import com.operra.operra_common.dto.ApiResponse;
 import com.operra.operra_common.dto.request.UserAccountCreationRequest;
 import com.operra.operra_common.dto.response.UserAccountCreationResponse;
 import com.operra.operra_identity_service.dto.request.UserAccountUpdateRequest;
+import com.operra.operra_identity_service.dto.request.UserAccountAdminUpdateRequest;
 import com.operra.operra_identity_service.dto.response.UserAccountUpdateResponse;
 import com.operra.operra_identity_service.service.UserAccountService;
 import lombok.AccessLevel;
@@ -41,6 +42,23 @@ public class UserAccountController {
     ApiResponse<UserAccountUpdateResponse> updatePassword(@RequestBody @Valid UserAccountUpdateRequest request){
         return ApiResponse.<UserAccountUpdateResponse>builder()
                 .result(userAccountService.update(request))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<UserAccountCreationResponse> adminUpdate(@PathVariable String id, @RequestBody @Valid UserAccountAdminUpdateRequest request) {
+        return ApiResponse.<UserAccountCreationResponse>builder()
+                .result(userAccountService.adminUpdateUserAccount(id, request))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<String> delete(@PathVariable String id) {
+        userAccountService.deleteUserAccount(id);
+        return ApiResponse.<String>builder()
+                .result("User account has been deleted")
                 .build();
     }
 }

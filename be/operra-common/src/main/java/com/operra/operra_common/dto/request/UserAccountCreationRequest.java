@@ -21,4 +21,5 @@ public class UserAccountCreationRequest {
     Instant creationDate;
     String status;
     List<String> roles;
+    List<String> permissions;
 }

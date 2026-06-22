@@ -31,7 +31,9 @@ public enum ErrorCode {
     INVALID_ATTENDANCE_EMPLOYEE(4004, "invalid attendance employee", HttpStatus.BAD_REQUEST),
     ATTENDANCE_NOT_FOUND(4005, "attendance not found", HttpStatus.NOT_FOUND),
     ATTENDANCE_ALREADY_CHECKED_IN(4006, "attendance already checked in", HttpStatus.BAD_REQUEST),
-    SHIFT_ALREADY_COMPLETED(4007,"shift already completed" , HttpStatus.BAD_REQUEST);
+    SHIFT_ALREADY_COMPLETED(4007,"shift already completed" , HttpStatus.BAD_REQUEST),
+    ROLE_NOT_FOUND(1006, "role not found", HttpStatus.NOT_FOUND),
+    PERMISSION_NOT_FOUND(1007, "permission not found", HttpStatus.NOT_FOUND);
 
     private int code;
     private String message;

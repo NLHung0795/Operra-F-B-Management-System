@@ -13,8 +13,11 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface UserAccountMapper {
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "permissions", ignore = true)
     UserAccount toUserAccount(UserAccountCreationRequest request);
+
     @Mapping(target = "roles", source = "roles")
+    @Mapping(target = "permissions", source = "permissions")
     UserAccountCreationResponse toUserAccountCreationResponse(UserAccount userAccount);
 
     default Set<String> mapRoles(Set<Role> roles) {
@@ -24,6 +27,16 @@ public interface UserAccountMapper {
 
         return roles.stream()
                 .map(Role::getName)
+                .collect(Collectors.toSet());
+    }
+
+    default Set<String> mapPermissions(Set<com.operra.operra_identity_service.entity.Permission> permissions) {
+        if (permissions == null) {
+            return null;
+        }
+
+        return permissions.stream()
+                .map(com.operra.operra_identity_service.entity.Permission::getName)
                 .collect(Collectors.toSet());
     }
 }

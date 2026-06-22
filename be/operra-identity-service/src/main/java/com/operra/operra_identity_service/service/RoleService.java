@@ -1,11 +1,15 @@
 package com.operra.operra_identity_service.service;
 
 import com.operra.operra_identity_service.dto.request.RoleRequest;
+import com.operra.operra_identity_service.dto.request.RoleUpdateRequest;
 import com.operra.operra_identity_service.dto.response.RoleResponse;
+import com.operra.operra_identity_service.dto.response.RoleUpdateResponse;
 import com.operra.operra_identity_service.entity.Permission;
 import com.operra.operra_identity_service.mapper.RoleMapper;
 import com.operra.operra_identity_service.repository.PermissionRepository;
 import com.operra.operra_identity_service.repository.RoleRepository;
+import com.operra.operra_common.exception.AppException;
+import com.operra.operra_common.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,5 +42,23 @@ public class RoleService {
                 .stream()
                 .map(role -> roleMapper.toRoleResponse(role))
                 .toList();
+    }
+
+    public RoleUpdateResponse update(String name, RoleUpdateRequest request) {
+        var role = roleRepository.findById(name)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+
+        role.setDescription(request.getDescription());
+        var permissions = permissionRepository.findAllById(request.getPermissions());
+        role.setPermissions(new HashSet<>(permissions));
+
+        role = roleRepository.save(role);
+        return roleMapper.toRoleUpdateResponse(role);
+    }
+
+    public void delete(String name) {
+        var role = roleRepository.findById(name)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        roleRepository.delete(role);
     }
 }

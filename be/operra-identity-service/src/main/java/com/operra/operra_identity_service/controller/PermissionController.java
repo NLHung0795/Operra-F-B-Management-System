@@ -2,7 +2,9 @@ package com.operra.operra_identity_service.controller;
 
 import com.operra.operra_common.dto.ApiResponse;
 import com.operra.operra_identity_service.dto.request.PermissionRequest;
+import com.operra.operra_identity_service.dto.request.PermissionUpdateRequest;
 import com.operra.operra_identity_service.dto.response.PermissionResponse;
+import com.operra.operra_identity_service.dto.response.PermissionUpdateResponse;
 import com.operra.operra_identity_service.service.PermissionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +35,17 @@ public class PermissionController {
     ApiResponse<List<PermissionResponse>> getAllPermission() {
         return ApiResponse.<List<PermissionResponse>>builder()
                 .result(permissionService.getAll()).build();
+    }
+
+    @PutMapping("/{name}")
+    ApiResponse<PermissionUpdateResponse> updatePermission(@PathVariable String name, @RequestBody PermissionUpdateRequest request) {
+        return ApiResponse.<PermissionUpdateResponse>builder()
+                .result(permissionService.update(name, request)).build();
+    }
+
+    @DeleteMapping("/{name}")
+    ApiResponse<Void> deletePermission(@PathVariable String name) {
+        permissionService.delete(name);
+        return ApiResponse.<Void>builder().build();
     }
 }

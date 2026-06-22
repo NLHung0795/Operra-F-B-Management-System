@@ -61,7 +61,14 @@ export function Settings() {
   // 4. Permission
   const [permForm, setPermForm] = useState({ name: "", description: "" });
   // 5. Account Creation
-  const [accForm, setAccForm] = useState({ username: "", email: "", password: "", roles: ["EMPLOYEE"] });
+  const [accForm, setAccForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    roles: ["EMPLOYEE"] as string[],
+    permissions: [] as string[],
+    status: "active"
+  });
 
   // Delete confirms
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -93,6 +100,9 @@ export function Settings() {
           // Also fetch roles to let user choose when creating accounts
           const rolesRes = await identityApi.getRoles();
           setRoles(rolesRes ?? []);
+          // Also fetch permissions for direct permission assignment
+          const permissionsRes = await identityApi.getPermissions();
+          setPermissions(permissionsRes ?? []);
         }
       } catch (err: any) {
         toast.error("Lỗi khi tải dữ liệu: " + err.message);
@@ -115,7 +125,14 @@ export function Settings() {
     } else if (activeTab === "perm") {
       setPermForm({ name: "", description: "" });
     } else if (activeTab === "account") {
-      setAccForm({ username: "", email: "", password: "", roles: ["EMPLOYEE"] });
+      setAccForm({
+        username: "",
+        email: "",
+        password: "",
+        roles: ["EMPLOYEE"],
+        permissions: [],
+        status: "active"
+      });
       setShowPassword(false);
     }
     setIsModalOpen(true);
@@ -132,6 +149,26 @@ export function Settings() {
         description: item.description ?? "",
         level: item.level ?? "STAFF",
         baseSalary: item.baseSalary ?? 5000000,
+      });
+    } else if (activeTab === "role") {
+      setRoleForm({
+        name: item.name,
+        description: item.description ?? "",
+        selectedPerms: item.permissions ? item.permissions.map((p: any) => p.name) : [],
+      });
+    } else if (activeTab === "perm") {
+      setPermForm({
+        name: item.name,
+        description: item.description ?? "",
+      });
+    } else if (activeTab === "account") {
+      setAccForm({
+        username: item.username,
+        email: item.email,
+        password: "",
+        roles: item.roles ?? [],
+        permissions: item.permissions ?? [],
+        status: item.status ?? "active"
       });
     }
     setIsModalOpen(true);
@@ -161,31 +198,56 @@ export function Settings() {
         }
       } else if (activeTab === "role") {
         if (!roleForm.name.trim()) return toast.error("Vui lòng nhập tên vai trò");
-        await identityApi.createRole({
-          name: roleForm.name.trim().toUpperCase(),
-          description: roleForm.description.trim() || undefined,
-          permissions: roleForm.selectedPerms,
-        });
-        toast.success("Thêm vai trò thành công");
+        if (editingItem) {
+          await identityApi.updateRole(editingItem.name, {
+            description: roleForm.description.trim() || undefined,
+            permissions: roleForm.selectedPerms,
+          });
+          toast.success("Cập nhật vai trò thành công");
+        } else {
+          await identityApi.createRole({
+            name: roleForm.name.trim().toUpperCase(),
+            description: roleForm.description.trim() || undefined,
+            permissions: roleForm.selectedPerms,
+          });
+          toast.success("Thêm vai trò thành công");
+        }
       } else if (activeTab === "perm") {
         if (!permForm.name.trim()) return toast.error("Vui lòng nhập tên quyền hạn");
-        await identityApi.createPermission({
-          name: permForm.name.trim().toLowerCase(),
-          description: permForm.description.trim() || undefined,
-        });
-        toast.success("Thêm quyền hạn thành công");
-      } else if (activeTab === "account") {
-        if (!accForm.username.trim() || !accForm.email.trim() || !accForm.password.trim()) {
-          return toast.error("Vui lòng nhập đầy đủ thông tin");
+        if (editingItem) {
+          await identityApi.updatePermission(editingItem.name, {
+            description: permForm.description.trim() || undefined,
+          });
+          toast.success("Cập nhật quyền hạn thành công");
+        } else {
+          await identityApi.createPermission({
+            name: permForm.name.trim().toLowerCase(),
+            description: permForm.description.trim() || undefined,
+          });
+          toast.success("Thêm quyền hạn thành công");
         }
-        await identityApi.registerUserAccount({
-          username: accForm.username.trim().toLowerCase(),
-          email: accForm.email.trim().toLowerCase(),
-          password: accForm.password,
-          status: "ACTIVE",
-          roles: accForm.roles,
-        });
-        toast.success("Đăng ký tài khoản người dùng thành công");
+      } else if (activeTab === "account") {
+        if (editingItem) {
+          await identityApi.updateUserAccount(editingItem.id, {
+            roles: accForm.roles,
+            permissions: accForm.permissions,
+            status: accForm.status,
+          });
+          toast.success("Cập nhật tài khoản người dùng thành công");
+        } else {
+          if (!accForm.username.trim() || !accForm.email.trim() || !accForm.password.trim()) {
+            return toast.error("Vui lòng nhập đầy đủ thông tin");
+          }
+          await identityApi.registerUserAccount({
+            username: accForm.username.trim().toLowerCase(),
+            email: accForm.email.trim().toLowerCase(),
+            password: accForm.password,
+            status: "active",
+            roles: accForm.roles,
+            permissions: accForm.permissions,
+          });
+          toast.success("Đăng ký tài khoản người dùng thành công");
+        }
       }
 
       setIsModalOpen(false);
@@ -204,6 +266,15 @@ export function Settings() {
       } else if (activeTab === "pos" && deletingId) {
         await organizationApi.deletePosition(deletingId);
         toast.success("Xóa chức vụ thành công");
+      } else if (activeTab === "role" && deletingName) {
+        await identityApi.deleteRole(deletingName);
+        toast.success("Xóa vai trò thành công");
+      } else if (activeTab === "perm" && deletingName) {
+        await identityApi.deletePermission(deletingName);
+        toast.success("Xóa quyền hạn thành công");
+      } else if (activeTab === "account" && deletingId) {
+        await identityApi.deleteUserAccount(deletingId);
+        toast.success("Xóa tài khoản thành công");
       }
       setReloadNonce((n) => n + 1);
     } catch (err: any) {
@@ -417,12 +488,13 @@ export function Settings() {
                         <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Vai trò</th>
                         <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Mô tả</th>
                         <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Quyền hạn sở hữu</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {roles.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-400">Không có vai trò nào.</td>
+                          <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-400">Không có vai trò nào.</td>
                         </tr>
                       ) : (
                         roles.map((r) => (
@@ -442,6 +514,25 @@ export function Settings() {
                                 )}
                               </div>
                             </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleOpenEditModal(r)}
+                                  className="p-1.5 hover:bg-gray-100 text-gray-500 hover:text-blue-600 rounded transition-all"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setDeletingName(r.name);
+                                    setDeletingId("dummy_role");
+                                  }}
+                                  className="p-1.5 hover:bg-gray-100 text-gray-500 hover:text-red-600 rounded transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -458,18 +549,38 @@ export function Settings() {
                       <tr className="bg-gray-50 border-b border-gray-150">
                         <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Mã quyền hạn (Permission Name)</th>
                         <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Mô tả</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {permissions.length === 0 ? (
                         <tr>
-                          <td colSpan={2} className="px-6 py-8 text-center text-sm text-gray-400">Không có quyền hạn nào.</td>
+                          <td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-400">Không có quyền hạn nào.</td>
                         </tr>
                       ) : (
                         permissions.map((p) => (
                           <tr key={p.name} className="hover:bg-gray-50/50">
                             <td className="px-6 py-4 text-sm text-gray-900 font-mono font-semibold">{p.name}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{p.description || "-"}</td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleOpenEditModal(p)}
+                                  className="p-1.5 hover:bg-gray-100 text-gray-500 hover:text-blue-600 rounded transition-all"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setDeletingName(p.name);
+                                    setDeletingId("dummy_perm");
+                                  }}
+                                  className="p-1.5 hover:bg-gray-100 text-gray-500 hover:text-red-600 rounded transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -486,13 +597,15 @@ export function Settings() {
                       <tr className="bg-gray-50 border-b border-gray-150">
                         <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Tài khoản</th>
                         <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Email</th>
-                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Vai trò gán</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Trạng thái</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Vai trò & Quyền gán</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {accounts.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-400">Không có tài khoản nào.</td>
+                          <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-400">Không có tài khoản nào.</td>
                         </tr>
                       ) : (
                         accounts.map((a) => (
@@ -503,16 +616,57 @@ export function Settings() {
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-600">{a.email}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">
-                              <div className="flex flex-wrap gap-1">
-                                {a.roles && a.roles.length > 0 ? (
-                                  a.roles.map((roleName) => (
-                                    <span key={roleName} className="bg-amber-50 text-amber-700 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">
-                                      {roleName}
-                                    </span>
-                                  ))
-                                ) : (
-                                  <span className="text-xs text-gray-400">Không có vai trò</span>
-                                )}
+                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                a.status === "active" || a.status === "ACTIVE"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-rose-100 text-rose-800"
+                              }`}>
+                                {a.status || "active"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              <div className="space-y-1">
+                                <div className="flex flex-wrap gap-1">
+                                  {a.roles && a.roles.length > 0 ? (
+                                    a.roles.map((roleName) => (
+                                      <span key={roleName} className="bg-amber-50 text-amber-700 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase border border-amber-200">
+                                        {roleName}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-[10px] text-gray-400">Không có vai trò</span>
+                                  )}
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {a.permissions && a.permissions.length > 0 ? (
+                                    a.permissions.map((permName) => (
+                                      <span key={permName} className="bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-medium border border-blue-200">
+                                        {permName}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-[10px] text-gray-400 italic">Không có quyền trực tiếp</span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleOpenEditModal(a)}
+                                  className="p-1.5 hover:bg-gray-100 text-gray-500 hover:text-blue-600 rounded transition-all"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setDeletingId(a.id);
+                                    setDeletingName(a.username);
+                                  }}
+                                  className="p-1.5 hover:bg-gray-100 text-gray-500 hover:text-red-600 rounded transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -632,8 +786,9 @@ export function Settings() {
                     value={roleForm.name}
                     onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value.toUpperCase() })}
                     placeholder="vd: STAFF, CASHIER, STORE_MANAGER"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
                     required
+                    disabled={!!editingItem}
                   />
                 </div>
                 <div>
@@ -687,8 +842,9 @@ export function Settings() {
                     value={permForm.name}
                     onChange={(e) => setPermForm({ ...permForm, name: e.target.value.toLowerCase() })}
                     placeholder="vd: employee:read, order:create..."
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
                     required
+                    disabled={!!editingItem}
                   />
                 </div>
                 <div>
@@ -715,8 +871,9 @@ export function Settings() {
                       value={accForm.username}
                       onChange={(e) => setAccForm({ ...accForm, username: e.target.value })}
                       placeholder="vd: admin.fabi"
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none"
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
                       required
+                      disabled={!!editingItem}
                     />
                   </div>
                   <div>
@@ -726,31 +883,47 @@ export function Settings() {
                       value={accForm.email}
                       onChange={(e) => setAccForm({ ...accForm, email: e.target.value })}
                       placeholder="vd: admin@operra.com"
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                      required
+                      disabled={!!editingItem}
+                    />
+                  </div>
+                </div>
+                {!editingItem && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mật khẩu tài khoản *</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={accForm.password}
+                        onChange={(e) => setAccForm({ ...accForm, password: e.target.value })}
+                        placeholder="Tối thiểu 6 ký tự..."
+                        className="w-full pl-3 pr-10 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {editingItem && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Trạng thái tài khoản</label>
+                    <select
+                      value={accForm.status}
+                      onChange={(e) => setAccForm({ ...accForm, status: e.target.value })}
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mật khẩu tài khoản *</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={accForm.password}
-                      onChange={(e) => setAccForm({ ...accForm, password: e.target.value })}
-                      placeholder="Tối thiểu 6 ký tự..."
-                      className="w-full pl-3 pr-10 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                      <option value="active">Hoạt động (Active)</option>
+                      <option value="inactive">Khóa (Inactive)</option>
+                    </select>
                   </div>
-                </div>
+                )}
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Gán vai trò (Roles)</label>
                   <div className="flex flex-wrap gap-2 mt-1">
@@ -773,6 +946,34 @@ export function Settings() {
                               className="rounded border-gray-300"
                             />
                             {r.name}
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Gán quyền trực tiếp (Direct Permissions)</label>
+                  <div className="border rounded-xl p-3 max-h-36 overflow-y-auto space-y-2 mt-1 bg-gray-50/50">
+                    {permissions.length === 0 ? (
+                      <p className="text-xs text-gray-400">Không có quyền hạn nào được tạo trước đó.</p>
+                    ) : (
+                      permissions.map((p) => {
+                        const isChecked = accForm.permissions.includes(p.name);
+                        return (
+                          <label key={p.name} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                const newPerms = isChecked
+                                  ? accForm.permissions.filter((name) => name !== p.name)
+                                  : [...accForm.permissions, p.name];
+                                setAccForm({ ...accForm, permissions: newPerms });
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-xs font-mono text-gray-700">{p.name}</span>
                           </label>
                         );
                       })

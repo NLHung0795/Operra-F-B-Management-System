@@ -1,10 +1,14 @@
 package com.operra.operra_identity_service.service;
 
 import com.operra.operra_identity_service.dto.request.PermissionRequest;
+import com.operra.operra_identity_service.dto.request.PermissionUpdateRequest;
 import com.operra.operra_identity_service.dto.response.PermissionResponse;
+import com.operra.operra_identity_service.dto.response.PermissionUpdateResponse;
 import com.operra.operra_identity_service.entity.Permission;
 import com.operra.operra_identity_service.mapper.PermissionMapper;
 import com.operra.operra_identity_service.repository.PermissionRepository;
+import com.operra.operra_common.exception.AppException;
+import com.operra.operra_common.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,5 +38,18 @@ public class PermissionService {
         return permissionRepository.findAll().stream().map(permission -> permissionMapper.toPermissionResponse(permission)).toList();
     }
 
+    public PermissionUpdateResponse update(String name, PermissionUpdateRequest request) {
+        var permission = permissionRepository.findById(name)
+                .orElseThrow(() -> new AppException(ErrorCode.PERMISSION_NOT_FOUND));
 
+        permission.setDescription(request.getDescription());
+        permission = permissionRepository.save(permission);
+        return permissionMapper.toPermissionUpdateResponse(permission);
+    }
+
+    public void delete(String name) {
+        var permission = permissionRepository.findById(name)
+                .orElseThrow(() -> new AppException(ErrorCode.PERMISSION_NOT_FOUND));
+        permissionRepository.delete(permission);
+    }
 }

@@ -1,7 +1,9 @@
 package com.operra.operra_identity_service.mapper;
 
 import com.operra.operra_identity_service.dto.request.RoleRequest;
+import com.operra.operra_identity_service.dto.request.RoleUpdateRequest;
 import com.operra.operra_identity_service.dto.response.RoleResponse;
+import com.operra.operra_identity_service.dto.response.RoleUpdateResponse;
 import com.operra.operra_identity_service.entity.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -11,4 +13,8 @@ public interface RoleMapper {
     @Mapping(target = "permissions", ignore = true)
     Role toRole(RoleRequest request);
     RoleResponse toRoleResponse(Role role);
+
+    @Mapping(target = "permissions", ignore = true)
+    Role toRole(RoleUpdateRequest request);
+    RoleUpdateResponse toRoleUpdateResponse(Role role);
 }

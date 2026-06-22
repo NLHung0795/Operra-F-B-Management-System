@@ -17,4 +17,5 @@ public class UserAccountCreationResponse {
     String email;
     Instant creationDate;
     Set<String> roles;
+    Set<String> permissions;
 }
