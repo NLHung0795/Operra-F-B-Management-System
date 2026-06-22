@@ -18,6 +18,7 @@ import com.oppera.oppera_organization_service.repository.httpclient.UserAccountC
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -91,6 +93,7 @@ public class EmployeeService {
 
     public EmployeeResponse getMyProfile() {
         String userAccountId = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.info("${}", userAccountId);
         return employeeMapper.toEmployeeResponse(employeeRepository.findByUserAccountId(userAccountId)
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND)));
     }

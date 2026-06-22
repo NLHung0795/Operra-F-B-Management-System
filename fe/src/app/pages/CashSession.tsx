@@ -10,6 +10,7 @@ import {
   History,
   TrendingUp
 } from 'lucide-react';
+import { hasPermission } from '../lib/auth';
 
 const CURRENT_SESSION = {
   id: 'CS-20260406-01',
@@ -32,6 +33,7 @@ const PAST_SESSIONS = [
 
 export function CashSession() {
   const isMock = import.meta.env.VITE_USE_MOCK_DATA === "true";
+  const canManageSession = hasPermission("OPEN_CLOSE_CASH_SESSION");
   const [isSessionOpen, setIsSessionOpen] = useState(isMock);
   const [showCloseModal, setShowCloseModal] = useState(false);
 
@@ -98,13 +100,15 @@ export function CashSession() {
                 <Clock className="w-4 h-4" />
                 Mở lúc {currentSessionData.startTime}
               </div>
-              <button 
-                onClick={() => setShowCloseModal(true)}
-                className="mt-3 flex items-center gap-2 px-6 py-2.5 bg-red-500 rounded-xl text-white text-sm font-bold hover:bg-red-600 transition-all shadow-sm shadow-red-200"
-              >
-                <StopCircle className="w-5 h-5" />
-                ĐÓNG CA & KIỂM TIỀN
-              </button>
+              {canManageSession && (
+                <button 
+                  onClick={() => setShowCloseModal(true)}
+                  className="mt-3 flex items-center gap-2 px-6 py-2.5 bg-red-500 rounded-xl text-white text-sm font-bold hover:bg-red-600 transition-all shadow-sm shadow-red-200"
+                >
+                  <StopCircle className="w-5 h-5" />
+                  ĐÓNG CA & KIỂM TIỀN
+                </button>
+              )}
             </div>
           </div>
 
@@ -190,13 +194,15 @@ export function CashSession() {
           <p className="text-gray-500 mb-8 max-w-md mx-auto">
             Bạn cần mở ca bán hàng để có thể tạo đơn và thanh toán trên hệ thống POS. Tiền đầu ca sẽ được ghi nhận vào két.
           </p>
-          <button 
-            onClick={() => setIsSessionOpen(true)}
-            className="flex items-center gap-2 px-8 py-3.5 bg-[#007AFF] rounded-xl text-white text-base font-bold hover:bg-[#0062CC] transition-all shadow-md shadow-blue-200 mx-auto"
-          >
-            <PlayCircle className="w-6 h-6" />
-            MỞ CA BÁN HÀNG
-          </button>
+          {canManageSession && (
+            <button 
+              onClick={() => setIsSessionOpen(true)}
+              className="flex items-center gap-2 px-8 py-3.5 bg-[#007AFF] rounded-xl text-white text-base font-bold hover:bg-[#0062CC] transition-all shadow-md shadow-blue-200 mx-auto"
+            >
+              <PlayCircle className="w-6 h-6" />
+              MỞ CA BÁN HÀNG
+            </button>
+          )}
         </div>
       )}
 
@@ -297,12 +303,14 @@ export function CashSession() {
                 >
                   HỦY BỎ
                 </button>
-                <button 
-                  onClick={handleCloseSession}
-                  className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-md shadow-red-200"
-                >
-                  CHỐT CA
-                </button>
+                {canManageSession && (
+                  <button 
+                    onClick={handleCloseSession}
+                    className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-md shadow-red-200"
+                  >
+                    CHỐT CA
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -79,6 +79,18 @@ public class AttendanceController {
                 .build();
     }
 
+    @GetMapping("/month")
+    @PreAuthorize("hasAuthority('VIEW_ATTENDANCE')")
+    ApiResponse<List<AttendanceResponse>> getAttendanceByMonth(
+            @RequestParam int month,
+            @RequestParam(required = false) Integer year
+    ) {
+        int resolvedYear = year != null ? year : Year.now().getValue();
+        return ApiResponse.<List<AttendanceResponse>>builder()
+                .result(attendanceService.getByMonth(month, resolvedYear))
+                .build();
+    }
+
     @GetMapping("/date/{date}")
     @PreAuthorize("hasAuthority('VIEW_ATTENDANCE') or hasAuthority('ATTENDANCE_CHECK')")
     ApiResponse<List<AttendanceResponse>> getAttendanceByDate(

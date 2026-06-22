@@ -5,7 +5,6 @@ import {
   ChevronRight, 
   Search, 
   Download,
-  Filter,
   CheckCircle2,
   XCircle,
   Clock,
@@ -13,7 +12,7 @@ import {
   Edit
 } from 'lucide-react';
 import { schedulingApi, organizationApi } from '../lib/api';
-import { hasPermission, getAuthData } from '../lib/auth';
+import { hasPermission, hasAnyRole, getAuthData } from '../lib/auth';
 import { toast } from 'sonner';
 
 // Attendance data structure for API
@@ -22,6 +21,7 @@ interface AttendanceRecord {
   employeeId: string;
   employeeName: string;
   date: string;
+  checkInDateKey: string;
   checkInTime: string;
   checkOutTime?: string;
   status: 'on-time' | 'late' | 'absent' | 'half-day';
@@ -33,12 +33,83 @@ interface AttendanceRecord {
 
 // Mock data - used when VITE_USE_MOCK_DATA is true
 const mockAttendanceData: AttendanceRecord[] = [
-  { id: 'att001', employeeId: 'EMP001', employeeName: 'Nguyễn Văn An', date: '06/04/2026', checkInTime: '07:55', checkOutTime: '17:05', status: 'on-time', lateMinutes: 0, workHours: '8h 10m', checkInStatus: 'CHECK_IN_ON_TIME', checkOutStatus: 'CHECK_OUT_ON_TIME' },
-  { id: 'att002', employeeId: 'EMP002', employeeName: 'Trần Thị Bình', date: '06/04/2026', checkInTime: '08:15', checkOutTime: '17:00', status: 'late', lateMinutes: 15, workHours: '7h 45m', checkInStatus: 'CHECK_IN_LATE', checkOutStatus: 'CHECK_OUT_ON_TIME' },
-  { id: 'att003', employeeId: 'EMP003', employeeName: 'Lê Hoàng Cường', date: '06/04/2026', checkInTime: '07:45', checkOutTime: '16:55', status: 'on-time', lateMinutes: 0, workHours: '8h 10m', checkInStatus: 'CHECK_IN_ON_TIME', checkOutStatus: 'CHECK_OUT_ON_TIME' },
-  { id: 'att004', employeeId: 'EMP004', employeeName: 'Phạm Minh Đức', date: '06/04/2026', checkInTime: '08:30', checkOutTime: '17:30', status: 'late', lateMinutes: 30, workHours: '8h 00m', checkInStatus: 'CHECK_IN_LATE', checkOutStatus: 'CHECK_OUT_ON_TIME' },
-  { id: 'att005', employeeId: 'EMP005', employeeName: 'Hoàng Diệu Linh', date: '06/04/2026', checkInTime: '07:58', checkOutTime: '17:02', status: 'on-time', lateMinutes: 0, workHours: '8h 04m', checkInStatus: 'CHECK_IN_ON_TIME', checkOutStatus: 'CHECK_OUT_ON_TIME' },
+  { id: 'att001', employeeId: 'EMP001', employeeName: 'Nguyễn Văn An', date: '06/04/2026', checkInDateKey: '2026-04-06', checkInTime: '07:55', checkOutTime: '17:05', status: 'on-time', lateMinutes: 0, workHours: '8h 10m', checkInStatus: 'CHECK_IN_ON_TIME', checkOutStatus: 'CHECK_OUT_ON_TIME' },
+  { id: 'att002', employeeId: 'EMP002', employeeName: 'Trần Thị Bình', date: '06/04/2026', checkInDateKey: '2026-04-06', checkInTime: '08:15', checkOutTime: '17:00', status: 'late', lateMinutes: 15, workHours: '7h 45m', checkInStatus: 'CHECK_IN_LATE', checkOutStatus: 'CHECK_OUT_ON_TIME' },
+  { id: 'att003', employeeId: 'EMP003', employeeName: 'Lê Hoàng Cường', date: '06/04/2026', checkInDateKey: '2026-04-06', checkInTime: '07:45', checkOutTime: '16:55', status: 'on-time', lateMinutes: 0, workHours: '8h 10m', checkInStatus: 'CHECK_IN_ON_TIME', checkOutStatus: 'CHECK_OUT_ON_TIME' },
+  { id: 'att004', employeeId: 'EMP004', employeeName: 'Phạm Minh Đức', date: '06/04/2026', checkInDateKey: '2026-04-06', checkInTime: '08:30', checkOutTime: '17:30', status: 'late', lateMinutes: 30, workHours: '8h 00m', checkInStatus: 'CHECK_IN_LATE', checkOutStatus: 'CHECK_OUT_ON_TIME' },
+  { id: 'att005', employeeId: 'EMP005', employeeName: 'Hoàng Diệu Linh', date: '06/04/2026', checkInDateKey: '2026-04-06', checkInTime: '07:58', checkOutTime: '17:02', status: 'on-time', lateMinutes: 0, workHours: '8h 04m', checkInStatus: 'CHECK_IN_ON_TIME', checkOutStatus: 'CHECK_OUT_ON_TIME' },
 ];
+
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
+  value: i + 1,
+  label: `Tháng ${i + 1}`,
+}));
+
+const buildYearOptions = (centerYear: number, range = 2) =>
+  Array.from({ length: range * 2 + 1 }, (_, i) => centerYear - range + i);
+
+const getDaysInMonth = (year: number, month: number) => new Date(year, month, 0).getDate();
+
+const toDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const toCheckInDateKey = (isoString?: string) => {
+  if (!isoString) return '';
+  try {
+    return new Date(isoString).toISOString().slice(0, 10);
+  } catch {
+    return '';
+  }
+};
+
+const formatTime = (isoString?: string) => {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  } catch {
+    return '';
+  }
+};
+
+const formatDisplayDate = (isoString?: string) => {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return '';
+  }
+};
+
+const calculateWorkHours = (inStr?: string, outStr?: string) => {
+  if (!inStr || !outStr) return '-';
+  try {
+    const d1 = new Date(inStr);
+    const d2 = new Date(outStr);
+    const diffMs = d2.getTime() - d1.getTime();
+    if (diffMs <= 0) return '-';
+    const diffMins = Math.floor(diffMs / 60000);
+    const hrs = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    return `${hrs}h ${mins}m`;
+  } catch {
+    return '-';
+  }
+};
+
+const mapStatus = (rec: { checkInStatus?: string; checkInTime?: string }): AttendanceRecord['status'] => {
+  if (rec.checkInStatus === 'CHECK_IN_LATE') return 'late';
+  if (!rec.checkInTime) return 'absent';
+  return 'on-time';
+};
 
 const getLoggedInUserAccountId = () => {
   const token = localStorage.getItem('accessToken');
@@ -59,11 +130,49 @@ const getLoggedInUserAccountId = () => {
   }
 };
 
+const removeVietnameseTones = (str: string): string => {
+  if (!str) return '';
+  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+  str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+  str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+  str = str.replace(/đ/g, "d");
+  str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+  str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+  str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+  str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+  str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+  str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+  str = str.replace(/Đ/g, "D");
+  // Combine accents
+  str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+  str = str.replace(/\u02C6|\u0306|\u031B/g, "");
+  return str;
+};
+
 export function Attendance() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const now = new Date();
+  const [selectedDate, setSelectedDate] = useState(now);
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [viewMode, setViewMode] = useState<'month' | 'day'>('day');
+
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleOpenDatePicker = () => {
+    if (dateInputRef.current) {
+      try {
+        dateInputRef.current.showPicker();
+      } catch (e) {
+        dateInputRef.current.click();
+      }
+    }
+  };
+  const [monthRecords, setMonthRecords] = useState<AttendanceRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'on-time' | 'late' | 'absent'>('all');
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -75,6 +184,10 @@ export function Attendance() {
   const [todayAttendance, setTodayAttendance] = useState<any | null>(null);
   const [loadingTimecard, setLoadingTimecard] = useState(false);
   const [timecardNonce, setTimecardNonce] = useState(0);
+
+  const auth = getAuthData();
+  const canViewTeamAttendance = hasAnyRole(["ADMIN", "MANAGER"]);
+  const canUseTimecard = hasPermission("ATTENDANCE_CHECK");
 
   useEffect(() => {
     const fetchTimecardData = async () => {
@@ -270,15 +383,97 @@ export function Attendance() {
   });
 
   const handlePrevDay = () => {
+    setViewMode('day');
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() - 1);
     setSelectedDate(newDate);
+    setSelectedMonth(newDate.getMonth() + 1);
+    setSelectedYear(newDate.getFullYear());
   };
 
   const handleNextDay = () => {
+    setViewMode('day');
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + 1);
     setSelectedDate(newDate);
+    setSelectedMonth(newDate.getMonth() + 1);
+    setSelectedYear(newDate.getFullYear());
+  };
+
+  const handleMonthChange = (month: number) => {
+    const maxDay = getDaysInMonth(selectedYear, month);
+    const day = Math.min(selectedDate.getDate(), maxDay);
+    const newDate = new Date(selectedYear, month - 1, day);
+    setSelectedMonth(month);
+    setSelectedDate(newDate);
+  };
+
+  const handleYearChange = (year: number) => {
+    const maxDay = getDaysInMonth(year, selectedMonth);
+    const day = Math.min(selectedDate.getDate(), maxDay);
+    const newDate = new Date(year, selectedMonth - 1, day);
+    setSelectedYear(year);
+    setSelectedDate(newDate);
+  };
+
+  const handleViewWholeMonth = () => {
+    setViewMode('month');
+  };
+
+  const handleExportExcel = () => {
+    if (filteredData.length === 0) {
+      toast.error("Không có dữ liệu để xuất!");
+      return;
+    }
+
+    const headers = [
+      "Mã nhân viên",
+      "Họ và tên",
+      "Ngày",
+      "Giờ vào",
+      "Giờ ra",
+      "Tổng giờ",
+      "Đi muộn (phút)",
+      "Trạng thái"
+    ];
+
+    const rows = filteredData.map(record => {
+      const badgeInfo = getStatusBadge(record.status);
+      return [
+        record.employeeId,
+        record.employeeName,
+        record.date || record.checkInDateKey,
+        record.checkInTime || "-",
+        record.checkOutTime || "-",
+        record.workHours || "-",
+        record.lateMinutes || 0,
+        badgeInfo.label
+      ];
+    });
+
+    const cleanHeaders = headers.map(h => removeVietnameseTones(h));
+    const cleanRows = rows.map(row => row.map(val => removeVietnameseTones(String(val))));
+
+    const csvContent = "\uFEFF" + [
+      "sep=,",
+      cleanHeaders.join(","),
+      ...cleanRows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    
+    const viewName = viewMode === "month" ? `ca_thang_${selectedMonth}_${selectedYear}` : selectedDateKey;
+    const cleanViewName = removeVietnameseTones(viewName);
+    link.setAttribute("download", `Bao_cao_cham_cong_${cleanViewName}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Xuất báo cáo chấm công thành công!");
   };
 
   useEffect(() => {
@@ -288,93 +483,33 @@ export function Attendance() {
 
       const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
       if (useMock) {
-        setRecords(mockAttendanceData);
+        setMonthRecords(mockAttendanceData);
         setIsLoading(false);
         return;
       }
 
       try {
-        const year = selectedDate.getFullYear();
-        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-        const day = String(selectedDate.getDate()).padStart(2, '0');
-        const formattedDate = `${year}-${month}-${day}`;
-
-        // Fetch employees mapping (catch error gracefully to support local fallback)
-        let employeeMap = new Map();
-        if (hasPermission("VIEW_ATTENDANCE")) {
-          const empPage = await organizationApi.getEmployees({ page: 1, size: 100 }).catch(() => ({ data: [] }));
-          employeeMap = new Map((empPage.data || []).map(e => [e.id, e.fullname]));
-        }
-
-        // Fetch attendance records for the date
-        // Note: If you want to load by month and filter locally, use getAttendance(employeeId, month, year)
-        // and filter the results by date. For now using date-based endpoint.
+        let employeeMap = new Map<string, string>();
         let apiRecords: any[] = [];
 
-        if (hasPermission("VIEW_ATTENDANCE")) {
-          apiRecords = await schedulingApi.getAttendanceByDate(formattedDate);
+        if (canViewTeamAttendance) {
+          const empPage = await organizationApi.getEmployees({ page: 1, size: 100 }).catch(() => ({ data: [] }));
+          employeeMap = new Map((empPage.data || []).map(e => [e.id, e.fullname]));
+
+          apiRecords = await schedulingApi.getAttendanceByMonth(selectedMonth, selectedYear);
         } else {
           if (!employeeId) {
-            setRecords([]);
+            setMonthRecords([]);
+            setIsLoading(false);
             return;
           }
 
           apiRecords = await schedulingApi.getAttendance(
             employeeId,
-            selectedDate.getMonth() + 1,
-            selectedDate.getFullYear()
+            selectedMonth,
+            selectedYear
           );
-
-          apiRecords = (apiRecords || []).filter((att) => {
-            if (!att.checkInTime) return false;
-            return new Date(att.checkInTime).toISOString().slice(0, 10) === formattedDate;
-          });
         }
-        // Helpers for record parsing
-        const formatTime = (isoString?: string) => {
-          if (!isoString) return '';
-          try {
-            const d = new Date(isoString);
-            return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-          } catch {
-            return '';
-          }
-        };
-
-        const calculateWorkHours = (inStr?: string, outStr?: string) => {
-          if (!inStr || !outStr) return '-';
-          try {
-            const d1 = new Date(inStr);
-            const d2 = new Date(outStr);
-            const diffMs = d2.getTime() - d1.getTime();
-            if (diffMs <= 0) return '-';
-            const diffMins = Math.floor(diffMs / 60000);
-            const hrs = Math.floor(diffMins / 60);
-            const mins = diffMins % 60;
-            return `${hrs}h ${mins}m`;
-          } catch {
-            return '-';
-          }
-        };
-
-        const mapStatus = (rec: any): 'on-time' | 'late' | 'absent' | 'half-day' => {
-          if (rec.checkInStatus === 'CHECK_IN_LATE') return 'late';
-          if (!rec.checkInTime) return 'absent';
-          return 'on-time';
-        };
-
-        // const getLateMinutes = (inStr?: string) => {
-        //   if (!inStr) return 0;
-        //   try {
-        //     const d = new Date(inStr);
-        //     const shiftStart = new Date(d);
-        //     shiftStart.setHours(8, 0, 0, 0);
-        //     if (d.getTime() > shiftStart.getTime()) {
-        //       return Math.floor((d.getTime() - shiftStart.getTime()) / 60000);
-        //     }
-        //   } catch {}
-        //   return 0;
-        // };
 
         const mapped: AttendanceRecord[] = (apiRecords || []).map(rec => ({
           id: rec.id,
@@ -385,7 +520,8 @@ export function Attendance() {
             localStorage.getItem('employeeName') ||
             auth.username ||
             rec.employeeId,
-          date: formattedDate,
+          date: formatDisplayDate(rec.checkInTime),
+          checkInDateKey: toCheckInDateKey(rec.checkInTime),
           checkInTime: formatTime(rec.checkInTime),
           checkOutTime: rec.checkOutTime ? formatTime(rec.checkOutTime) : undefined,
           status: mapStatus(rec),
@@ -399,21 +535,25 @@ export function Attendance() {
           checkOutStatus: rec.checkOutStatus,
         }));
 
-        setRecords(mapped);
+        setMonthRecords(mapped);
       } catch (err) {
         console.error('Error loading attendance:', err);
-        setError('Không thể kết nối đến máy chủ để lấy dữ liệu chấm công. Hãy chắc chắn BE endpoint /attendance/date/{date} hoặc /attendance?employeeId=&month=&year= đã sẵn sàng, hoặc kích hoạt VITE_USE_MOCK_DATA.');
-        setRecords([]);
+        setError('Không thể kết nối đến máy chủ để lấy dữ liệu chấm công. Hãy chắc chắn BE endpoint /attendance/month hoặc /attendance?employeeId=&month=&year= đã sẵn sàng, hoặc kích hoạt VITE_USE_MOCK_DATA.');
+        setMonthRecords([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [selectedDate, refreshTrigger, employeeId, currentEmployeeName]);
+  }, [selectedMonth, selectedYear, refreshTrigger, employeeId, currentEmployeeName, canViewTeamAttendance]);
 
-  const auth = getAuthData();
-  const hasViewAll = hasPermission("VIEW_ATTENDANCE");
+  const yearOptions = buildYearOptions(new Date().getFullYear());
+  const selectedDateKey = toDateKey(selectedDate);
+
+  const records = viewMode === 'month'
+    ? monthRecords
+    : monthRecords.filter((record) => record.checkInDateKey === selectedDateKey);
 
   const filteredData = records.filter(record => {
     const matchesSearch =
@@ -455,31 +595,106 @@ export function Attendance() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {hasPermission("VIEW_ATTENDANCE") ? "Quản lý chấm công" : "Lịch sử chấm công"}
+            {canViewTeamAttendance ? "Quản lý chấm công" : "Lịch sử chấm công"}
           </h1>
           <p className="text-gray-500 text-sm">
-            {hasPermission("VIEW_ATTENDANCE") 
+            {canViewTeamAttendance 
               ? "Theo dõi thời gian ra vào và hiệu suất làm việc của nhân sự." 
               : "Xem lịch sử ra vào và chấm công của cá nhân."}
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-          <button 
-            onClick={handlePrevDay}
-            className="p-2 hover:bg-gray-50 rounded-lg text-gray-400"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 font-bold text-gray-800 text-sm">
-            <CalendarIcon className="w-4 h-4 text-[#007AFF]" />
-            {dateStr}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-100">
+            <CalendarIcon className="w-4 h-4 text-[#007AFF] shrink-0" />
+            <select
+              value={selectedMonth}
+              onChange={(e) => handleMonthChange(Number(e.target.value))}
+              className="bg-transparent border-none text-sm font-bold text-gray-800 focus:outline-none focus:ring-0 cursor-pointer"
+            >
+              {MONTH_OPTIONS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <span className="text-gray-300">/</span>
+            <select
+              value={selectedYear}
+              onChange={(e) => handleYearChange(Number(e.target.value))}
+              className="bg-transparent border-none text-sm font-bold text-gray-800 focus:outline-none focus:ring-0 cursor-pointer"
+            >
+              {yearOptions.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
           </div>
-          <button 
-            onClick={handleNextDay}
-            className="p-2 hover:bg-gray-50 rounded-lg text-gray-400"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+
+          <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={toDateKey(selectedDate)}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const newDate = new Date(e.target.value);
+                  setSelectedDate(newDate);
+                  setSelectedMonth(newDate.getMonth() + 1);
+                  setSelectedYear(newDate.getFullYear());
+                  setViewMode('day');
+                }
+              }}
+              className="sr-only"
+            />
+            <button
+              onClick={handlePrevDay}
+              className="p-2 hover:bg-gray-50 rounded-lg text-gray-400"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div 
+              onClick={handleOpenDatePicker}
+              className="flex items-center gap-2 px-3 py-1.5 font-bold text-gray-800 text-sm min-w-[180px] justify-center cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
+              title="Click để chọn ngày"
+            >
+              <CalendarIcon className="w-4 h-4 text-gray-400 shrink-0" />
+              {viewMode === 'month' ? (
+                <span className="text-[#007AFF]">Cả tháng {selectedMonth}/{selectedYear}</span>
+              ) : (
+                dateStr
+              )}
+            </div>
+            <button
+              onClick={handleNextDay}
+              className="p-2 hover:bg-gray-50 rounded-lg text-gray-400"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex items-center rounded-xl border border-gray-200 overflow-hidden bg-white">
+            <button
+              onClick={() => setViewMode('day')}
+              className={`px-3 py-2 text-sm font-bold transition-colors ${
+                viewMode === 'day'
+                  ? 'bg-[#007AFF] text-white'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Theo ngày
+            </button>
+            <button
+              onClick={handleViewWholeMonth}
+              className={`px-3 py-2 text-sm font-bold transition-colors ${
+                viewMode === 'month'
+                  ? 'bg-[#007AFF] text-white'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Cả tháng
+            </button>
+          </div>
         </div>
       </div>
 
@@ -490,7 +705,7 @@ export function Attendance() {
         </div>
       )}
 
-      {hasPermission("VIEW_ATTENDANCE") && (
+      {canViewTeamAttendance && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between overflow-hidden relative">
           <div>
@@ -536,8 +751,8 @@ export function Attendance() {
         </div>
       )}
 
-      {/* Timecard Chấm công dành cho Nhân viên */}
-      {!hasPermission("VIEW_ATTENDANCE") && (
+      {/* Timecard chấm công cá nhân (EMPLOYEE, MANAGER, ...) */}
+      {canUseTimecard && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-md">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-5 h-5 text-[#5D4037]" />
@@ -635,7 +850,7 @@ export function Attendance() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex flex-wrap gap-4 items-center justify-between bg-gray-50/50">
           <div className="flex flex-wrap gap-3">
-            {hasPermission("VIEW_ATTENDANCE") && (
+            {canViewTeamAttendance && (
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
@@ -659,7 +874,10 @@ export function Attendance() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50">
+            <button 
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-emerald-600 transition-colors"
+            >
               <Download className="w-4 h-4" />
               Xuất Excel
             </button>
@@ -677,12 +895,15 @@ export function Attendance() {
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nhân viên</th>
+                  {viewMode === 'month' && (
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Ngày</th>
+                  )}
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Giờ vào</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Giờ ra</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tổng giờ</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Đi muộn</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Trạng thái</th>
-                  {hasPermission("VIEW_ATTENDANCE") && (
+                  {canViewTeamAttendance && (
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Thao tác</th>
                   )}
                 </tr>
@@ -690,7 +911,7 @@ export function Attendance() {
               <tbody className="divide-y divide-gray-50">
                 {filteredData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                    <td colSpan={viewMode === 'month' ? 8 : 7} className="px-6 py-8 text-center text-sm text-gray-500">
                       Không có dữ liệu chấm công phù hợp
                     </td>
                   </tr>
@@ -705,6 +926,9 @@ export function Attendance() {
                             <p className="text-xs text-gray-400">{record.employeeId}</p>
                           </div>
                         </td>
+                        {viewMode === 'month' && (
+                          <td className="px-6 py-4 text-center text-sm font-medium text-gray-700">{record.date}</td>
+                        )}
                         <td className="px-6 py-4 text-center font-mono font-bold text-[#007AFF]">{record.checkInTime}</td>
                         <td className="px-6 py-4 text-center font-mono font-medium text-gray-600">{record.checkOutTime || '-'}</td>
                         <td className="px-6 py-4 text-center text-sm font-medium">{record.workHours || '-'}</td>
@@ -718,7 +942,7 @@ export function Attendance() {
                             {badgeInfo.label}
                           </span>
                         </td>
-                        {hasPermission("VIEW_ATTENDANCE") && (
+                        {canViewTeamAttendance && (
                           <td className="px-6 py-4 text-center">
                             {hasPermission('MANAGE_ATTENDANCE') && (
                               <button

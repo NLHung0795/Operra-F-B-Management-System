@@ -21,12 +21,14 @@ import {
   DialogFooter,
 } from "../components/ui/dialog";
 import { toast } from "sonner";
+import { hasPermission } from "../lib/auth";
 
 export function BranchManagement() {
   const [branches, setBranches] = useState<BranchResponse[]>([]);
   const [companies, setCompanies] = useState<CompanyResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [status, setStatus] = useState("");
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadNonce, setReloadNonce] = useState(0);
@@ -66,7 +68,10 @@ export function BranchManagement() {
     setError(null);
 
     organizationApi
-      .getBranches({ status: status || undefined })
+      .getBranches({ 
+        status: status || undefined,
+        companyId: selectedCompanyId || undefined
+      })
       .then((result) => {
         if (!ignored) {
           setBranches(result ?? []);
@@ -86,7 +91,7 @@ export function BranchManagement() {
     return () => {
       ignored = true;
     };
-  }, [status, reloadNonce]);
+  }, [status, selectedCompanyId, reloadNonce]);
 
   const handleOpenFormModal = (branch: BranchResponse | null = null) => {
     setEditingBranch(branch);
@@ -209,13 +214,15 @@ export function BranchManagement() {
           <h1 className="text-2xl font-bold text-gray-900">Quản lý chi nhánh</h1>
           <p className="text-gray-500 text-sm mt-1">Dữ liệu lấy từ Organization Service.</p>
         </div>
-        <button
-          onClick={() => handleOpenFormModal()}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#5D4037] text-white rounded-xl font-bold hover:bg-[#3E2723] transition-all shadow-sm"
-        >
-          <Plus className="w-5 h-5" />
-          Thêm chi nhánh
-        </button>
+        {hasPermission("MANAGE_BRANCH") && (
+          <button
+            onClick={() => handleOpenFormModal()}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#5D4037] text-white rounded-xl font-bold hover:bg-[#3E2723] transition-all shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            Thêm chi nhánh
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -230,6 +237,20 @@ export function BranchManagement() {
               className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5D4037]/20 transition-all"
             />
           </div>
+          {hasPermission("MANAGE_BRANCH") && (
+            <select
+              value={selectedCompanyId}
+              onChange={(event) => setSelectedCompanyId(event.target.value)}
+              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5D4037]/20 transition-all outline-none"
+            >
+              <option value="">Tất cả công ty</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
           <select
             value={status}
             onChange={(event) => setStatus(event.target.value)}
@@ -250,7 +271,9 @@ export function BranchManagement() {
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Thông tin</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Công ty</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                {hasPermission("MANAGE_BRANCH") && (
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -315,37 +338,54 @@ export function BranchManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleToggleStatus(branch)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer hover:brightness-95 ${getStatusStyle(
-                          branch.status
-                        )}`}
-                        title="Click để đổi trạng thái nhanh"
-                      >
-                        {branch.status?.toUpperCase() === "ACTIVE" ? (
-                          <CheckCircle2 className="w-3 h-3" />
-                        ) : (
-                          <AlertCircle className="w-3 h-3" />
-                        )}
-                        {branch.status ?? "UNKNOWN"}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      {hasPermission("MANAGE_BRANCH") ? (
                         <button
-                          onClick={() => handleOpenFormModal(branch)}
-                          className="p-2 text-gray-400 hover:text-[#5D4037] hover:bg-[#EFEBE9] rounded-lg transition-colors"
+                          onClick={() => handleToggleStatus(branch)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer hover:brightness-95 ${getStatusStyle(
+                            branch.status
+                          )}`}
+                          title="Click để đổi trạng thái nhanh"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          {branch.status?.toUpperCase() === "ACTIVE" ? (
+                            <CheckCircle2 className="w-3 h-3" />
+                          ) : (
+                            <AlertCircle className="w-3 h-3" />
+                          )}
+                          {branch.status ?? "UNKNOWN"}
                         </button>
-                        <button
-                          onClick={() => setDeletingBranch(branch)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      ) : (
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${getStatusStyle(
+                            branch.status
+                          )}`}
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                          {branch.status?.toUpperCase() === "ACTIVE" ? (
+                            <CheckCircle2 className="w-3 h-3" />
+                          ) : (
+                            <AlertCircle className="w-3 h-3" />
+                          )}
+                          {branch.status ?? "UNKNOWN"}
+                        </span>
+                      )}
                     </td>
+                    {hasPermission("MANAGE_BRANCH") && (
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenFormModal(branch)}
+                            className="p-2 text-gray-400 hover:text-[#5D4037] hover:bg-[#EFEBE9] rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingBranch(branch)}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
             </tbody>

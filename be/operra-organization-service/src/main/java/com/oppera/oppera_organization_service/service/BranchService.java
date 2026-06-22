@@ -7,12 +7,14 @@ import com.oppera.oppera_organization_service.entity.BranchAllowedIp;
 import com.oppera.oppera_organization_service.mapper.BranchMapper;
 import com.oppera.oppera_organization_service.repository.BranchAllowedIpRepository;
 import com.oppera.oppera_organization_service.repository.BranchRepository;
+import com.oppera.oppera_organization_service.repository.EmployeeRepository;
 import com.operra.operra_common.exception.AppException;
 import com.operra.operra_common.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -27,6 +29,7 @@ public class BranchService {
     BranchAllowedIpRepository branchAllowedIpRepository;
     BranchMapper branchMapper;
     CompanyService companyService;
+    EmployeeRepository employeeRepository;
 
     @Transactional
     public BranchResponse create(String companyId, BranchRequest request) {
@@ -40,6 +43,22 @@ public class BranchService {
     }
 
     public List<BranchResponse> getAll(){
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            boolean isManager = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            
+            if (isManager && !isAdmin) {
+                String userAccountId = authentication.getName();
+                var employee = employeeRepository.findByUserAccountId(userAccountId)
+                        .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+                String companyId = employee.getBranch().getCompany().getId();
+                return getByCompany(companyId);
+            }
+        }
+
         return branchRepository.findAll()
                 .stream()
                 .map(branchMapper::toBranchResponse)
@@ -47,6 +66,24 @@ public class BranchService {
     }
 
     public List<BranchResponse> getByCompany(String companyId) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            boolean isManager = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            
+            if (isManager && !isAdmin) {
+                String userAccountId = authentication.getName();
+                var employee = employeeRepository.findByUserAccountId(userAccountId)
+                        .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+                String managerCompanyId = employee.getBranch().getCompany().getId();
+                if (!managerCompanyId.equals(companyId)) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED);
+                }
+            }
+        }
+
         companyService.findEntityById(companyId);
         return branchRepository.findByCompanyId(companyId)
                 .stream()
@@ -105,6 +142,26 @@ public class BranchService {
     }
 
     public List<BranchResponse> getByStatus(String status) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            boolean isManager = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            
+            if (isManager && !isAdmin) {
+                String userAccountId = authentication.getName();
+                var employee = employeeRepository.findByUserAccountId(userAccountId)
+                        .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+                String companyId = employee.getBranch().getCompany().getId();
+                return branchRepository.findByCompanyId(companyId)
+                        .stream()
+                        .filter(branch -> status.equals(branch.getStatus()))
+                        .map(branchMapper::toBranchResponse)
+                        .toList();
+            }
+        }
+
         return branchRepository.findByStatus(status)
                 .stream()
                 .map(branchMapper::toBranchResponse)

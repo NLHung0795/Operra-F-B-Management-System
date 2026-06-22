@@ -14,6 +14,7 @@ import com.operra.operra_identity_service.repository.UserAccountRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,13 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class UserAccountService {
 
     UserAccountRepository userAccountRepository;
@@ -40,8 +44,25 @@ public class UserAccountService {
         var userAccount = userAccountMapper.toUserAccount(request);
         userAccount.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        HashSet<Role> roles = new HashSet<>();
-        roleRepository.findById(PredefinedRole.EMPLOYEE_ROLE).ifPresent(role -> roles.add(role));
+        Set<String> roleNames = new HashSet<>();
+        if (Objects.nonNull(request.getRoles())) {
+            request.getRoles().stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(role -> !role.isEmpty())
+                    .map(String::toUpperCase)
+                    .forEach(roleNames::add);
+        }
+
+        if (roleNames.isEmpty()) {
+            roleNames.add(PredefinedRole.EMPLOYEE_ROLE);
+        }
+
+        HashSet<Role> roles = new HashSet<>(roleRepository.findAllById(roleNames));
+        if (roles.size() != roleNames.size()) {
+            throw new AppException(ErrorCode.USER_ACCOUNT_ERROR);
+        }
+        
         userAccount.setRoles(roles);
 
         userAccount.setCreationDate(Instant.now());

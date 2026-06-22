@@ -4,6 +4,45 @@ export interface AuthData {
   permissions: string[];
 }
 
+const ROLE_PERMISSIONS: Record<string, string[]> = {
+  ADMIN: [
+    "CREATE_ROLE", "VIEW_ROLE", "UPDATE_ROLE", "DELETE_ROLE",
+    "CREATE_PERMISSION", "VIEW_PERMISSION", "VIEW_USER_ACCOUNTS",
+    "MANAGE_USER_ACCOUNTS", "MANAGE_COMPANY", "MANAGE_BRANCH",
+    "MANAGE_DEPARTMENT", "MANAGE_POSITION", "VIEW_EMPLOYEE",
+    "MANAGE_EMPLOYEE", "MANAGE_WORK_ASSIGNMENT", "VIEW_SHIFT_ASSIGNMENT",
+    "MANAGE_SHIFT_ASSIGNMENT", "VIEW_ATTENDANCE", "MANAGE_ATTENDANCE",
+    "ATTENDANCE_CHECK", "SUBMIT_LEAVE_REQUEST", "APPROVE_LEAVE_REQUEST",
+    "VIEW_LEAVE_REQUEST", "OPEN_CLOSE_CASH_SESSION", "VIEW_CASH_SESSION",
+    "CREATE_ORDER", "VIEW_ORDER", "UPDATE_ORDER", "CANCEL_ORDER",
+    "MANAGE_INVOICE", "MANAGE_EXPENSE", "VIEW_EXPENSE", "MANAGE_PAYROLL",
+    "VIEW_PERSONAL_PAYROLL", "VIEW_KPI"
+  ],
+  MANAGER: [
+    "VIEW_EMPLOYEE", "MANAGE_EMPLOYEE", "MANAGE_WORK_ASSIGNMENT",
+    "VIEW_SHIFT_ASSIGNMENT", "MANAGE_SHIFT_ASSIGNMENT", "VIEW_ATTENDANCE",
+    "MANAGE_ATTENDANCE", "ATTENDANCE_CHECK", "SUBMIT_LEAVE_REQUEST",
+    "APPROVE_LEAVE_REQUEST", "VIEW_LEAVE_REQUEST", "OPEN_CLOSE_CASH_SESSION",
+    "VIEW_CASH_SESSION", "CREATE_ORDER", "VIEW_ORDER", "UPDATE_ORDER",
+    "CANCEL_ORDER", "MANAGE_INVOICE", "MANAGE_EXPENSE", "VIEW_EXPENSE",
+    "MANAGE_PAYROLL", "VIEW_PERSONAL_PAYROLL", "VIEW_KPI"
+  ],
+  CASHIER: [
+    "ATTENDANCE_CHECK", "SUBMIT_LEAVE_REQUEST", "VIEW_LEAVE_REQUEST",
+    "OPEN_CLOSE_CASH_SESSION", "VIEW_CASH_SESSION", "CREATE_ORDER",
+    "VIEW_ORDER", "UPDATE_ORDER", "CANCEL_ORDER", "MANAGE_INVOICE",
+    "MANAGE_EXPENSE", "VIEW_EXPENSE", "VIEW_PERSONAL_PAYROLL", "VIEW_KPI"
+  ],
+  KITCHEN: [
+    "ATTENDANCE_CHECK", "SUBMIT_LEAVE_REQUEST", "VIEW_LEAVE_REQUEST",
+    "VIEW_PERSONAL_PAYROLL", "VIEW_KPI"
+  ],
+  EMPLOYEE: [
+    "ATTENDANCE_CHECK", "SUBMIT_LEAVE_REQUEST", "VIEW_LEAVE_REQUEST",
+    "VIEW_PERSONAL_PAYROLL", "VIEW_KPI"
+  ]
+};
+
 export function getAuthData(): AuthData {
   const token = localStorage.getItem("accessToken");
   const isMock = import.meta.env.VITE_USE_MOCK_DATA === "true";
@@ -66,19 +105,21 @@ export function getAuthData(): AuthData {
 
 export function hasPermission(permission: string): boolean {
   const auth = getAuthData();
-  // ADMIN role automatically has all permissions
-  if (auth.roles.includes("ADMIN")) {
-    return true;
+  const knownRolePermissions = auth.roles
+    .map((role) => ROLE_PERMISSIONS[role])
+    .filter((permissions): permissions is string[] => Boolean(permissions));
+
+  if (knownRolePermissions.length > 0) {
+    return knownRolePermissions.some((permissions) => permissions.includes(permission));
   }
-  return auth.permissions.includes(permission);
+
+  return (
+    auth.permissions.includes(permission)
+  );
 }
 
 export function hasAnyPermission(permissions: string[]): boolean {
-  const auth = getAuthData();
-  if (auth.roles.includes("ADMIN")) {
-    return true;
-  }
-  return permissions.some((p) => auth.permissions.includes(p));
+  return permissions.some((p) => hasPermission(p));
 }
 
 export function hasRole(role: string): boolean {

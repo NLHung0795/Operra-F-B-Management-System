@@ -31,7 +31,7 @@ import { useOutletContext } from 'react-router';
 import type { AppMode } from '../components/MainLayout';
 import { schedulingApi, organizationApi } from '../lib/api';
 import { toast } from 'sonner';
-import { getAuthData } from '../lib/auth';
+import { hasPermission } from '../lib/auth';
 
 const getLoggedInUserAccountId = () => {
   const token = localStorage.getItem('accessToken');
@@ -76,10 +76,21 @@ const revenueData = [
 export function Dashboard() {
   const { mode } = useOutletContext<{ mode: AppMode }>();
   const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-  const auth = getAuthData();
-  const isAdmin = auth.roles.includes('ADMIN');
 
   const isHrm = mode === 'hrm';
+  const canViewHrmOverview = [
+    "VIEW_EMPLOYEE",
+    "VIEW_ATTENDANCE",
+    "VIEW_SHIFT_ASSIGNMENT",
+    "MANAGE_PAYROLL"
+  ].some(hasPermission);
+  const canViewPosOverview = [
+    "VIEW_ORDER",
+    "VIEW_CASH_SESSION",
+    "VIEW_EXPENSE"
+  ].some(hasPermission);
+  const canViewOverview = isHrm ? canViewHrmOverview : canViewPosOverview;
+  const canUseTimecard = hasPermission("ATTENDANCE_CHECK");
 
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [todayShift, setTodayShift] = useState<any | null>(null);
@@ -225,7 +236,7 @@ export function Dashboard() {
     { label: 'Lợi nhuận gộp', value: useMock ? '6.2M' : '0đ', change: useMock ? '+12%' : '0%', icon: Target, color: 'text-stone-700', bg: 'bg-stone-50' },
   ];
 
-  const activitiesList = useMock 
+  const activitiesList = useMock && canViewOverview
     ? (isHrm ? [
         { id: 1, type: 'attendance', user: 'Nguyễn Văn An (Pha chế)', action: 'Check-in trễ 15 phút', time: '08:15 AM', status: 'warning' },
         { id: 2, type: 'shift', user: 'Trần Thị Bình (Phục vụ)', action: 'Đổi ca thành công', time: '09:30 AM', status: 'success' },
@@ -259,13 +270,16 @@ export function Dashboard() {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Hệ thống: Online
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200">
-            <Download className="w-4 h-4" />
-            Xuất báo cáo
-          </button>
+          {canViewOverview && (
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200">
+              <Download className="w-4 h-4" />
+              Xuất báo cáo
+            </button>
+          )}
         </div>
       </div>
 
+      {canViewOverview && (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
           <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -284,8 +298,10 @@ export function Dashboard() {
           </div>
         ))}
       </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={canViewOverview ? "grid grid-cols-1 lg:grid-cols-3 gap-6" : "grid grid-cols-1 gap-6"}>
+        {canViewOverview && (
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 min-w-0">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -331,10 +347,11 @@ export function Dashboard() {
             )}
           </div>
         </div>
+        )}
 
         <div className="space-y-6">
           {/* Timecard Chấm công */}
-          {!isAdmin && (
+          {canUseTimecard && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-4">
                 <Clock className="w-5 h-5 text-[#5D4037]" />
@@ -442,6 +459,7 @@ export function Dashboard() {
           )}
 
           {/* Hoạt động gần đây */}
+          {canViewOverview && (
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-gray-900">
@@ -480,6 +498,7 @@ export function Dashboard() {
               )}
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>

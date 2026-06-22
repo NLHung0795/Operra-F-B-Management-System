@@ -578,6 +578,11 @@ export const schedulingApi = {
         ),
     getAttendanceByDate: (date: string) =>
         request<AttendanceResponse[]>(schedulingBaseUrl, `/attendance/date/${date}`),
+    getAttendanceByMonth: (month: number, year?: number) =>
+        request<AttendanceResponse[]>(
+            schedulingBaseUrl,
+            `/attendance/month${toQuery({ month, ...(year != null ? { year } : {}) })}`,
+        ),
     getAttendanceSummary: (employeeId: string, month: number, year: number) =>
         request<AttendanceSummaryResponse>(
             schedulingBaseUrl,

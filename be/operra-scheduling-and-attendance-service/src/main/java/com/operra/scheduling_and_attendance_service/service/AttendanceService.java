@@ -169,6 +169,16 @@ public class AttendanceService {
                 .toList();
     }
 
+    public List<AttendanceResponse> getByMonth(int month, int year) {
+        var range = monthRange(month, year);
+
+        return attendanceRepository
+                .findByCheckInTimeBetweenOrderByCheckInTimeAsc(range.from(), range.to())
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public AttendanceSummaryResponse getSummary(String employeeId, int month, int year) {
         var attendances = getByEmployeeAndMonth(employeeId, month, year);
         long totalMinutes = attendances.stream()

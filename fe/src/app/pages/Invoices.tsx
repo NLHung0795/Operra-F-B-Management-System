@@ -324,7 +324,7 @@ export function Invoices() {
                           <Printer className="w-4 h-4" />
                         </button>
                         {inv.status === "Completed" && (
-                          <HasPermission anyOfPermissions={['MANAGE_COMPANY', 'MANAGE_EMPLOYEE']}>
+                          <HasPermission permission="CANCEL_ORDER">
                             <button
                               onClick={() => handleCancelInvoice(inv.id)}
                               className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-red-600 transition-colors"
@@ -370,7 +370,7 @@ export function Invoices() {
                   <div className="w-12 h-12 bg-[#5D4037] text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto">
                     FB
                   </div>
-                  <h4 className="font-bold text-sm text-gray-900 uppercase">FABiBox+ Coffee & Restaurant</h4>
+                  <h4 className="font-bold text-sm text-gray-900 uppercase">Operra Coffee & Restaurant</h4>
                   <p className="text-[10px] text-gray-500">123 Đường Ba Tháng Hai, Quận 10, TP. HCM</p>
                   <p className="text-[10px] text-gray-500">ĐT: 1900 1234 • MST: 0102030405</p>
                 </div>
@@ -461,7 +461,7 @@ export function Invoices() {
             {/* Bottom Actions of Drawer */}
             <div className="p-4 border-t border-gray-100 flex gap-3 z-10 bg-white">
               {selectedInvoice.status === "Completed" && (
-                <HasPermission anyOfPermissions={['MANAGE_COMPANY', 'MANAGE_EMPLOYEE']}>
+                <HasPermission permission="CANCEL_ORDER">
                   <button
                     onClick={() => handleCancelInvoice(selectedInvoice.id)}
                     className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border border-red-200"

@@ -124,6 +124,9 @@ export function MainLayout() {
   };
 
   const currentItems = sidebarItems[mode].filter(item => {
+    if (item.path === '/branches') {
+      return hasPermission('MANAGE_BRANCH') || userRoles.includes('MANAGER');
+    }
     if (item.excludeRoles && hasAnyRole(item.excludeRoles)) {
       return false;
     }
@@ -156,7 +159,7 @@ export function MainLayout() {
           <div className="w-8 h-8 bg-[#D7CCC8] rounded-lg flex items-center justify-center shrink-0">
             <div className="w-4 h-4 bg-[#3E2723] rounded-full" />
           </div>
-          {isSidebarOpen && <span className="ml-3 font-bold text-xl tracking-tight text-white">FABiBox+</span>}
+          {isSidebarOpen && <span className="ml-3 font-bold text-xl tracking-tight text-white">Operra</span>}
         </div>
 
         {isSidebarOpen ? (

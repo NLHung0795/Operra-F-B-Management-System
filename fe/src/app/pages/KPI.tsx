@@ -21,6 +21,7 @@ import {
   Legend,
   Cell
 } from 'recharts';
+import { hasPermission } from '../lib/auth';
 
 const KPI_METRICS = [
   { id: 1, name: 'Điểm phục vụ KH (CSAT)', target: '4.5/5', current: '4.7', status: 'success', icon: ThumbsUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -38,6 +39,7 @@ const STAFF_PERFORMANCE = [
 
 export function KPI() {
   const useMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  const canViewTeamKpi = hasPermission("VIEW_EMPLOYEE") || hasPermission("MANAGE_EMPLOYEE");
   const metrics = useMock ? KPI_METRICS : [];
   const performances = useMock ? STAFF_PERFORMANCE : [];
   const chartData = performances.map(item => ({
@@ -62,10 +64,12 @@ export function KPI() {
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200">
-            <Download className="w-4 h-4" />
-            Xuất báo cáo
-          </button>
+          {canViewTeamKpi && (
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#007AFF] rounded-xl text-white text-sm font-semibold hover:bg-[#0062CC] transition-all shadow-sm shadow-blue-200">
+              <Download className="w-4 h-4" />
+              Xuất báo cáo
+            </button>
+          )}
         </div>
       </div>
 
@@ -100,6 +104,7 @@ export function KPI() {
         )}
       </div>
 
+      {canViewTeamKpi && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-8">
@@ -190,6 +195,7 @@ export function KPI() {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }

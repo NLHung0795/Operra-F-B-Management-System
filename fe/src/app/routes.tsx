@@ -32,8 +32,13 @@ const NotFound = () => (
 );
 
 function AttendanceRouteGuard() {
-  const isAllowed = !hasRole("ADMIN") && (hasPermission("VIEW_ATTENDANCE") || hasPermission("ATTENDANCE_CHECK"));
+  const isAllowed = hasPermission("VIEW_ATTENDANCE") || hasPermission("ATTENDANCE_CHECK");
   return isAllowed ? <Attendance /> : <Forbidden />;
+}
+
+function BranchRouteGuard() {
+  const isAllowed = hasPermission("MANAGE_BRANCH") || hasRole("MANAGER");
+  return isAllowed ? <BranchManagement /> : <Forbidden />;
 }
 
 export const router = createBrowserRouter([
@@ -131,11 +136,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "branches",
-        element: (
-          <HasPermission permission="MANAGE_BRANCH" fallback={<Forbidden />}>
-            <BranchManagement />
-          </HasPermission>
-        ),
+        element: <BranchRouteGuard />,
       },
       {
         path: "invoices",

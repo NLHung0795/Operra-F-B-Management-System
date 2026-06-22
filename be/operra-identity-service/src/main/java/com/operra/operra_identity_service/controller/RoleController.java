@@ -16,12 +16,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/roles")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@PreAuthorize("hasRole('ADMIN')")
 public class RoleController {
 
     RoleService roleService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<RoleResponse> createRole(@RequestBody RoleRequest request){
         return ApiResponse.<RoleResponse>builder()
                 .result(roleService.create(request))
@@ -29,6 +29,7 @@ public class RoleController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     ApiResponse<List<RoleResponse>> getAllRoles(){
         return ApiResponse.<List<RoleResponse>>builder()
                 .result(roleService.getAllRole())

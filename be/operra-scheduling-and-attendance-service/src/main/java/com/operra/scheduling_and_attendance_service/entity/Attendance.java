@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import lombok.AccessLevel;
@@ -23,7 +24,14 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 @Entity
-@Table(name = "attendance")
+@Table(name = "attendance",
+        uniqueConstraints = {
+                    @UniqueConstraint(
+                            name = "uk_attendance_shift_assignment",
+                            columnNames = {"shift_assignment_id"}
+                    )
+            }
+)
 @Data
 @Builder
 @NoArgsConstructor
